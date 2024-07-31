@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
-import Header from "../../components/Header";
-import PieChart from "../../components/PieChart";
+import Header from "../../components/UI/Theme/Header";
+import PieChart from "../../components/UI/Theme/PieChart";
 
 const Pie = () => {
   return (
