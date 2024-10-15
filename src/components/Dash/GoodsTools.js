@@ -1,34 +1,38 @@
-import CsvXlsxConverter from "./CsvXlsxConverter";
 import {useEffect, useState} from "react";
-import {GoodsData} from "../../data/imitated_api";
-import {EditGoodsBitrix} from "./EditGoodsBitrix";
+import Page from "../UI/Theme/Page";
+import {fetchAllGoodsData} from "../../requests/api_v2";
 
-export const GoodsTools = () => {
+export const GoodsTools = ({token}) => {
 
-    const [bitrixGoodsData, setBitrixGoodsData] = useState(null);
+    const [goods, setGoods] = useState(null);
 
     useEffect(() => {
 
-        const getBitrixData = async () => {
+        const getGoodsData = async () => {
 
-            try {
+            const response = await fetchAllGoodsData(token);
+            console.log('\n ', response);
+            setGoods(response);
 
-                const response = await GoodsData();
-
-                // console.log('\n response', response);
-                setBitrixGoodsData(response?.length ? response : null);
-            }
-            catch (e) {
-                console.log('\n getBitrixData', e);
-            }
+            // try {
+            //     const response = await axios.get('/assets/data/bitrix_goods.json'); // путь относительно public
+            //     console.log('\n Axios response:', JSON.parse(response.data));
+            //     setGoods(response.data); // сохраняем данные в стейт
+            // } catch (error) {
+            //     console.error('Error fetching the JSON file with Axios:', error);
+            // }
         }
 
-        getBitrixData();
-    }, []);
+        getGoodsData();
+    }, [token]);
+
+    if (goods) console.log('\n goods', goods);
 
     return (
-        bitrixGoodsData?.length > 0 ?
-            <EditGoodsBitrix data={bitrixGoodsData} /> :
-            <CsvXlsxConverter />
+        <Page
+            label="Управление товарами"
+            subtitle=""
+        >
+        </Page>
     );
 }

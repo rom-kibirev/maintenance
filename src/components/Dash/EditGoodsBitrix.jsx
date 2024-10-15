@@ -1,8 +1,8 @@
 import {Box, Button, TextField, useTheme} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import Header from "../UI/Theme/Header";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import {tokens} from "../../theme";
+import {DataGrid, GridToolbar} from "@mui/x-data-grid";
 
 export const EditGoodsBitrix = ({ data }) => {
 
@@ -13,6 +13,7 @@ export const EditGoodsBitrix = ({ data }) => {
     const [keys, setKeys] = useState(null);
     const [groups, setGroups] = useState(null);
     const [brands, setBrands] = useState(null);
+    // console.log('\n keys', keys);
 
     useEffect(() => {
         if (data?.length > 0) {
@@ -33,6 +34,23 @@ export const EditGoodsBitrix = ({ data }) => {
             const dataBrands = data.flatMap(good => good["IP_PROP45"]).filter(g => g);
             const uniqueBrands = [...new Set(dataBrands)].sort();
             setBrands(uniqueBrands);
+
+            // console.log('\n data', data);
+
+            const searchParam = "a:4:{i:0;a:3:{s:4:\"good\";s:33:\"Ударный гайковерт\";s:5:\"value\";s:0:\"\";s:8:\"quantity\";i:1;}i:1;a:3:{s:4:\"good\";s:30:\"Аккумулятор RT-LB24\";s:5:\"value\";s:0:\"\";s:8:\"quantity\";i:2;}i:2;a:3:{s:4:\"good\";s:37:\"Зарядное устройство\";s:5:\"value\";s:0:\"\";s:8:\"quantity\";i:1;}i:3;a:3:{s:4:\"good\";s:34:\"Сумка для хранения\";s:5:\"value\";s:0:\"\";s:8:\"quantity\";i:1;}}";
+            const brand_ids = data
+                .filter((d) => {
+
+                    const fieldsValue = Object.values(d)
+                        .some(v => String(v).toUpperCase() === String(searchParam).toUpperCase())
+                    ;
+
+                    // console.log('\n ', fieldsValue);
+
+                    return fieldsValue;
+                })
+            ;
+            console.log('\n brand_ids', brand_ids);
         }
     }, [data]);
 
@@ -51,7 +69,7 @@ export const EditGoodsBitrix = ({ data }) => {
         }
 
     }, [keys]);
-    // console.log('\n uniqueKeys', uniqueKeys);
+    // if (uniqueKeys) console.log('\n uniqueKeys', uniqueKeys);
     const columns = uniqueKeys?.map(key => ({
         field: key,
         headerName: key,
@@ -78,9 +96,9 @@ export const EditGoodsBitrix = ({ data }) => {
         }).filter(r => r);
     // console.log('\n guids', guids);
     // console.log('\n repeatedRows', repeatedRows);
-    
+
     const editKeysHandler = (key, exist) => {
-        
+
         // console.log('\n ', key, exist, uniqueKeys);
 
         if (exist) {
@@ -155,21 +173,21 @@ export const EditGoodsBitrix = ({ data }) => {
                     "& .MuiDataGrid-columnHeaders": {
                         borderBottom: "none",
                         backgroundColor: colors.primary[500],
-                        color: colors.second[500],
+                        color: colors.yellowAccent[900],
                     },
                     "& .MuiDataGrid-footerContainer": {
                         borderTop: "none",
                         backgroundColor: colors.primary[500],
-                        color: colors.second[500],
+                        color: colors.yellowAccent[900],
                     },
                     "& .MuiCheckbox-root": {
                         color: `${colors.greenAccent[200]} !important`,
                     },
                     "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        color: `${colors.second[500]} !important`,
+                        color: `${colors.yellowAccent[900]} !important`,
                     },
                     "& .MuiToolbar-gutters": {
-                        color: `${colors.second[500]} !important`,
+                        color: `${colors.yellowAccent[900]} !important`,
                     },
                 }}
             >
@@ -198,8 +216,8 @@ export const EditGoodsBitrix = ({ data }) => {
                         rows={rows}
                         columns={columns}
                         components={{ Toolbar: GridToolbar }}
-                        pageSize={25}
-                        rowsPerPageOptions={[25]}
+                        pageSize={30}
+                        rowsPerPageOptions={[30]}
                     />
                 }
             </Box>

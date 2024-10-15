@@ -1,52 +1,53 @@
-import { useState } from "react";
-import { Routes, Route } from "react-router-dom";
-import Topbar from "./scenes/global/Topbar";
-import Sidebar from "./scenes/global/Sidebar";
-import Dashboard from "./scenes/dashboard";
-import Team from "./scenes/team";
-import Invoices from "./scenes/invoices";
-import Contacts from "./scenes/contacts";
-import Bar from "./scenes/bar";
-import Form from "./scenes/form";
-import Line from "./scenes/line";
-import Pie from "./scenes/pie";
-import FAQ from "./scenes/faq";
-import Geography from "./scenes/geography";
-import {Box, CssBaseline, ThemeProvider} from "@mui/material";
-import { ColorModeContext, useMode } from "./theme";
-import Calendar from "./scenes/calendar/calendar";
+import React, { useEffect, useState } from "react";
+import {Routes, Route, useNavigate} from "react-router-dom";
+import { useCookies } from "react-cookie";
+import {CssBaseline, Box, ThemeProvider} from "@mui/material";
 import WelcomeUser from "./components/Dash/WelcomeUser";
+import Authorization from "./components/Public/Authorization";
+import * as PropTypes from "prop-types";
+import Sidebar from "./scenes/global/Sidebar";
+import { ColorModeContext, useMode } from "./theme";
+import {CategoriesTools} from "./components/Dash/CategoriesTools";
 import {GoodsTools} from "./components/Dash/GoodsTools";
 
+ThemeProvider.propTypes = {children: PropTypes.node};
+
 function App() {
+
     const [theme, colorMode] = useMode();
-    const [isSidebar, setIsSidebar] = useState(true);
+    const [cookies, setCookie, removeCookie] = useCookies(['token']);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (cookies.token) {
+            setIsAuthenticated(true);
+        } else {
+            setIsAuthenticated(false);
+            navigate('/login');
+        }
+    }, [cookies.token, navigate]);
+
+    // Функция выхода
+    const handleLogout = () => {
+        removeCookie('token', { path: '/', sameSite: 'None', secure: true });
+        setIsAuthenticated(false);
+    };
 
     return (
         <ColorModeContext.Provider value={colorMode}>
             <ThemeProvider theme={theme}>
                 <CssBaseline />
                 <div className="app">
-                    <Sidebar isSidebar={isSidebar} />
+                    {isAuthenticated && <Sidebar handleLogout={handleLogout} token={cookies.token}/>}
                     <main className="content">
-                        <Topbar setIsSidebar={setIsSidebar} />
-                        <Box m="20px">
+                        <Box className={`h-screen relative p-5`}>
                             <Routes>
-                                <Route path="/" element={<WelcomeUser />} />
-                                <Route path="/goods-tools" element={<GoodsTools />} />
+                                <Route path="/login" element={<Authorization setCookie={setCookie} />} />
 
-                                {/*тестовые роуты */}
-                                <Route path="/dashboard" element={<Dashboard />} />
-                                <Route path="/team" element={<Team />} />
-                                <Route path="/contacts" element={<Contacts />} />
-                                <Route path="/invoices" element={<Invoices />} />
-                                <Route path="/form" element={<Form />} />
-                                <Route path="/bar" element={<Bar />} />
-                                <Route path="/pie" element={<Pie />} />
-                                <Route path="/line" element={<Line />} />
-                                <Route path="/faq" element={<FAQ />} />
-                                <Route path="/calendar" element={<Calendar />} />
-                                <Route path="/geography" element={<Geography />} />
+                                <Route path="/" element={<WelcomeUser />}/>
+                                <Route path="/categories-tools" element={<CategoriesTools token={cookies.token} />}/>
+                                <Route path="/goods-tools" element={<GoodsTools token={cookies.token} />}/>
                             </Routes>
                         </Box>
                     </main>

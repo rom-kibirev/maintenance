@@ -1,5 +1,5 @@
 import Typography from "@mui/material/Typography";
-import {Box, Button, CardMedia, Grid, Skeleton, useTheme} from "@mui/material";
+import {Avatar, Box, Card, CardContent, CardHeader, useTheme} from "@mui/material";
 import {routers} from "../../context";
 import React from "react";
 import {tokens} from "../../theme";
@@ -11,77 +11,32 @@ export default function WelcomeUser() {
     const colors = tokens(theme.palette.mode);
 
     return (
-        <Box >
-            <Typography variant="h2" color={colors.second[500]}>
+        <Box>
+            <Typography variant="h2" color={colors.yellowAccent[500]}>
                 Начало работы
             </Typography>
-            <Grid
-                container
-                wrap="wrap"
-                spacing={1}
-            >
+            <Box className={`flex flex-row flex-wrap gap-2`}>
                 {routers.map((item, index) => (
-                    <Grid item key={index}>
-                        <Button
-                            variant="outlined"
-                            component={Link}
-                            to={item.to}
-                            color="secondary"
-                        >
-                                <Box sx={{
-                                    width:300,
-                                    mx: 0.5,
-                                    my: 5,
-                                    textTransform: "none"
-                                }} >
-                                    {item ? (
-                                        <React.Fragment>
-                                            <CardMedia
-                                                variant="rectangular"
-                                                title={item.title}
-                                                image={item.src}
-                                                sx={{
-                                                    width:"100%",
-                                                    height:150,
-                                                    borderRadius: 1,
-                                                    marginBottom: 1,
-                                                }}
-                                            />
-                                            <Box>
-                                                <Typography gutterBottom variant="h3" color={colors.second[400]}>
-                                                    {item.icon}
-                                                    {item.title}
-                                                </Typography>
-                                                <Typography
-                                                    variant="h5"
-                                                    color={colors.primary[100]}
-                                                    sx={{ whiteSpace: "break-spaces" }}
-                                                >
-                                                    {item.options}
-                                                </Typography>
-                                                <Typography variant="body2" color={colors.greenAccent[200]}>
-                                                    {item.options}
-                                                </Typography>
-                                                <Typography variant="body2" color={colors.redAccent[200]}>
-                                                    {item.trouble}
-                                                </Typography>
-                                            </Box>
-                                        </React.Fragment>
-                                    ) : (
-                                        <Skeleton
-                                            variant="rectangular"
-                                            sx={{
-                                                width:300,
-                                                height:200,
-                                                borderRadius: 1,
-                                            }}
-                                        />
-                                    )}
-                                </Box>
-                        </Button>
-                    </Grid>
+
+                    <Card
+                        sx={{ width: 345 }}
+                        key={index}
+                        component={Link}
+                        to={item.to}
+                    >
+                        <CardHeader
+                            avatar={
+                                <Avatar sx={{ bgcolor: colors.yellowAccent[700] }} aria-label="recipe">{item.icon}</Avatar>
+                            }
+                            title={item.title}
+                        />
+                        <CardContent>
+                            <Typography variant="body2" color={colors.blueAccent[400]}>{item.options}</Typography>
+                            <Typography variant="body2" color={colors.redAccent[500]}>{item.trouble}</Typography>
+                        </CardContent>
+                    </Card>
                 ))}
-            </Grid>
+            </Box>
         </Box>
     );
 }
