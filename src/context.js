@@ -12,7 +12,8 @@ export const routers = [
         title: 'Работа с поиском товаров',
         to: '/search',
         options: 'Атотранслит, Поиск по названию',
-        trouble: 'Не описан, нет api, интеграция с сайтом',
+        trouble: 'Не описан, проблема на стороне работы с товарами',
+        worked: null,
         icon: <SearchRoundedIcon />
     },
     {
@@ -20,8 +21,9 @@ export const routers = [
         src: 'https://perevozka24.ru/img/ck_upload/289.img4942.gif',
         title: 'Работа с категориями',
         to: '/categories-tools',
-        options: 'Управление настроками категорий, поиск ошибок, сравнение с текущим каталогом, формирование отчета',
-        trouble: 'Не описан, нет api, интеграция с сайтом',
+        options: 'В плане изменение свойств: FILTER_PROPS, IS_MODIFIED_ON_SITE, KEYWORDS, META_DESCRIPTION, TITLE',
+        trouble: null,
+        worked: 'Работает API получение/отправка настроек категорий',
         icon: <CategoryRoundedIcon />
     },
     {
@@ -30,7 +32,8 @@ export const routers = [
         title: 'Работа с товарами',
         to: '/goods-tools',
         options: '',
-        trouble: 'Не описан, нет api, интеграция с сайтом',
+        trouble: 'Требует дополнение методов получения товаров, а также изменения лимитов отдельное ДС для Лакру',
+        worked: 'Работает API получение/отправка настроек категорий',
         icon: <PlumbingRoundedIcon />
     },
     {
@@ -39,7 +42,7 @@ export const routers = [
         title: 'Матрицы товаров',
         to: '/',
         options: '',
-        trouble: 'Не описан, нет api, интеграция с сайтом',
+        trouble: 'Не описан',
         icon: <SwitchAccessShortcutIcon />
     },
     // {

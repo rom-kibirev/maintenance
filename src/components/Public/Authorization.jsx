@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { TextField, Button, Box, Typography, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import {auth} from "../../requests/api_v2";
+import {auth, fetchUserData} from "../../requests/api_v2";
+import {groupTypes} from "../UI/global/templates";
 
 const LoginPage = ({ setCookie }) => {
     const [username, setUsername] = useState("");
@@ -20,13 +21,26 @@ const LoginPage = ({ setCookie }) => {
         else {
 
             const token = response.token;
+            const getUserData = await fetchUserData(token);
+            if (getUserData.success) {
+                // console.log('\n ', getUserData?.data?.groups, groupTypes[getUserData?.data?.groups[0]]);
+                const checkAccess = getUserData?.data?.groups?.filter(id => {
 
-            setCookie('token', token, { path: '/', sameSite: 'None', secure: true });
+                    const readAccess = groupTypes[id];
 
-            navigate("/");
+                    return readAccess?.agreement_read;
+                });
+
+                // console.log('\n checkAccess', checkAccess);
+
+                if (checkAccess?.length > 0) {
+                    setCookie('token', token, {path: '/', sameSite: 'None', secure: true});
+
+                    navigate("/");
+                }
+            }
         }
     };
-
 
     return (
         <Paper elevation={3} sx={{ padding: 4, maxWidth: 400, margin: 'auto' }}>
