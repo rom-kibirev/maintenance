@@ -51,7 +51,7 @@ const Sidebar = ({handleLogout, token}) => {
             if (updateUser.success) {
 
                 setUser(updateUser.data);
-            }
+            } else handleLogout();
         }
 
         getUserData();

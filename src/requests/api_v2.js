@@ -127,7 +127,7 @@ export const sendCategories = async (token, categories) => {
     try {
         const getUserData = await fetchUserData(token);
 
-        if (getUserData.success) { // && categories.length > 0
+        if (getUserData.success && categories.length > 0) {
 
             const checkAccess = getUserData?.data?.groups?.filter(id => {
 
