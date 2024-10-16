@@ -1,5 +1,6 @@
 import axios from "axios";
 import {api, headersRequests} from "../data/rules";
+import {groupTypes} from "../components/UI/global/templates";
 
 export const auth = async (login, password) => {
     try {
@@ -120,3 +121,56 @@ export const fetchAllGoodsData = async (token) => {
         };
     }
 };
+
+export const sendCategories = async (token, categories) => {
+
+    try {
+        const getUserData = await fetchUserData(token);
+
+        if (getUserData.success) { // && categories.length > 0
+
+            const checkAccess = getUserData?.data?.groups?.filter(id => {
+
+                const readAccess = groupTypes[id];
+
+                return readAccess?.agreement_read;
+            });
+
+            // console.log('\n checkAccess', checkAccess);
+
+            if (checkAccess?.length > 0) {
+                const data = categories.map(c => {
+
+                    return {
+                        ID: c.ID,
+                        NAME: c.NAME,
+                        ACTIVE: c.ACTIVE,
+                        SORT: c.SORT,
+                        CODE: c.CODE,
+                    };
+                });
+                console.log('\n data', data);
+
+                const response = await axios.patch(
+                    `${api}/category`,
+                    JSON.stringify({data}),
+                    headersRequests('post', token)
+                );
+
+                return {
+                    success: response.status === 200,
+                    data: response.data,
+                };
+            }
+        }
+    }
+    catch (error) {
+
+        console.error('sendCategories:', error.response ? error.response.data : error.message);
+
+        return {
+            success: false,
+            message: error?.response?.data?.errors?.map((e, i) => `sendCategories - attr: ${e.attr} detail: ${e.detail} code: ${e.code}`)
+        };
+    }
+}

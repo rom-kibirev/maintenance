@@ -9,7 +9,7 @@ import UnfoldMoreOutlinedIcon from '@mui/icons-material/UnfoldMoreOutlined';
 import VisuallyHiddenInput from "../UI/Buttons/Button";
 import OpenInBrowserRoundedIcon from '@mui/icons-material/OpenInBrowserRounded';
 
-export default function PrintCategories({ data, saveXlsxHandler, uploadXlsxHandler }) {
+export default function PrintCategories({ data, saveXlsxHandler, uploadXlsxHandler, sendChangedCategoriesHandler }) {
 
     const [categories, setCategories] = useState(null);
     const [isAllOpened, setIsAllOpened] = useState(false);
@@ -183,6 +183,7 @@ export default function PrintCategories({ data, saveXlsxHandler, uploadXlsxHandl
                     role={undefined}
                     color="error"
                     variant="outlined"
+                    onClick={sendChangedCategoriesHandler}
                     startIcon={<OpenInBrowserRoundedIcon/>}
                 >
                     Отправить данные на сайт

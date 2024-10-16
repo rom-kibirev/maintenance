@@ -21,13 +21,13 @@ export const headersRequests = (type, token) => {
         //         'Authorization': `Bearer ${token}`
         //     }
         // },
-        // post_json: {
-        //     headers: {
-        //         'accept': 'application/json',
-        //         'Content-Type': 'application/json',
-        //         'Authorization': `Bearer ${token}`
-        //     }
-        // }
+        post: {
+            headers: {
+                'accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        }
     };
 
     return types[type];

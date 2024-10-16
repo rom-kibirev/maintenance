@@ -3,12 +3,14 @@ import PrintCategories from "./PrintCategories";
 import Header from "../UI/Theme/Header";
 import {Alert, Box} from "@mui/material";
 import * as XLSX from "xlsx";
-import {fetchCategoryData} from "../../requests/api_v2";
+import {fetchCategoryData, sendCategories} from "../../requests/api_v2";
 
 export const CategoriesTools = ({token}) => {
 
     const [categoriesData, setCategoriesData] = useState(null);
     const [answer, setAnswer] = useState(null);
+    const [changedIdList, setChangedIdList] = useState([]);
+
     useEffect(() => {
 
         const getCategoriesData = async () => {
@@ -44,7 +46,14 @@ export const CategoriesTools = ({token}) => {
 
         getCategoriesData();
     }, [token]);
-    if (categoriesData) console.log('\n categoriesData', categoriesData);
+    // console.log('\n categoriesData', categoriesData);
+    // if (categoriesData) console.log('\n categoriesData', categoriesData, categoriesData?.find(c => c.NAME === 'Runtec TEST 2'));
+
+    const changeIdsList = (id) => {
+
+        const updateChangedIdList = [...changedIdList, id];
+        setChangedIdList(updateChangedIdList);
+    }
 
     const saveXlsxHandler = () => {
         const parents = categoriesData.filter(c => !c.IBLOCK_SECTION_ID);
@@ -132,7 +141,6 @@ export const CategoriesTools = ({token}) => {
         const fileName = `Категории_${date}.xlsx`;
         XLSX.writeFile(wb, fileName);
     };
-
     const uploadXlsxHandler = async (e) => {
 
         const file = e.target.files[0];
@@ -153,13 +161,16 @@ export const CategoriesTools = ({token}) => {
             reader.readAsArrayBuffer(file);
         }
     };
-
     const reBuildCategories = (data) => {
         
         const updateCategoriesData = categoriesData
             .map(c => {
             
-            const inject = data.find(r=> r.ID === c.ID);
+            const inject = data.find(r=> {
+
+                if (r.ID === c.ID) changeIdsList(c.ID);
+                return (r.ID === c.ID);
+            });
 
             if (inject?.NEW_NAME) {
                 c.NAME = inject.NEW_NAME;
@@ -185,17 +196,74 @@ export const CategoriesTools = ({token}) => {
         setCategoriesData(updateCategoriesData);
     }
 
+    // const setRuntecFirst = () => {
+    //
+    //     const updateCategoriesData = [...categoriesData].map(g => {
+    //
+    //         if (g.ID === 8782) {
+    //             g.SORT = 1;
+    //             changeIdsList(8782);
+    //         }
+    //         return g;
+    //     });
+    //     setCategoriesData(updateCategoriesData)
+    // }
+    // const disableRuntecTest = () => {
+    //
+    //     const updateCategoriesData = [...categoriesData].map(g => {
+    //
+    //         if (g.ID === 7809) {
+    //             g.ACTIVE = false;
+    //
+    //             changeIdsList(7809);
+    //         }
+    //         return g;
+    //     });
+    //     setCategoriesData(updateCategoriesData)
+    // }
+    // const renameRuntecTest = () => {
+    //
+    //     const updateCategoriesData = [...categoriesData].map(g => {
+    //
+    //         if (g.ID === 7810) {
+    //             g.NAME = "Инструмент для металлообработки";
+    //             changeIdsList(7810);
+    //         }
+    //         return g;
+    //     });
+    //     setCategoriesData(updateCategoriesData)
+    // }
+
+    const sendChangedCategoriesHandler = async () => {
+
+        const changedCategories = categoriesData.filter(c => changedIdList.includes(c.ID));
+
+        const response = await sendCategories(token, changedCategories);
+        if (response?.success) {
+            console.log('\n response', response.data);
+            setAnswer({success: true, message: "Данные успешно обновлены" });
+        }
+    }
+
     return (
         <Box>
             <Header title="Управление категориями" subtitle={"Демонстрация категорий как на сайте"} />
-            {answer && <Alert severity={answer.success ? "success" : "error"}>
-                {answer.success ? "Данные успешно обновлены" : answer.message}
-            </Alert>}
+            {answer && <Box>
+                <Alert severity={answer.success ? "success" : "error"}>
+                    {answer.success ? "Данные успешно обновлены" : answer.message}
+                </Alert>
+            </Box>}
+            {/*<Box className={`flex flex-wrap gap-2 items-center mb-6`}>*/}
+            {/*    <Button variant="outlined" color="warning" onClick={setRuntecFirst}>Runtec sort 1</Button>*/}
+            {/*    <Button variant="outlined" color="warning" onClick={disableRuntecTest}>Runtec TEST 1 disable</Button>*/}
+            {/*    <Button variant="outlined" color="warning" onClick={renameRuntecTest}>Runtec TEST 2 rename</Button>*/}
+            {/*</Box>*/}
             {categoriesData?.length > 0 &&
                 <PrintCategories
                     data={categoriesData}
                     saveXlsxHandler={saveXlsxHandler}
                     uploadXlsxHandler={uploadXlsxHandler}
+                    sendChangedCategoriesHandler={sendChangedCategoriesHandler}
                 />
             }
         </Box>

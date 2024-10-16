@@ -201,3 +201,7 @@ const post_goods = {
     "response": 200,
     "limit": 1000
 }
+
+const getPriceByGoodId = {
+    "method": "POST/GET /api/price/",
+}

@@ -22,7 +22,7 @@ export const routers = [
         title: 'Работа с категориями',
         to: '/categories-tools',
         options: 'В плане изменение свойств: FILTER_PROPS, IS_MODIFIED_ON_SITE, KEYWORDS, META_DESCRIPTION, TITLE',
-        trouble: null,
+        trouble: "Не описаны методы управления данными",
         worked: 'Работает API получение/отправка настроек категорий',
         icon: <CategoryRoundedIcon />
     },
@@ -32,7 +32,7 @@ export const routers = [
         title: 'Работа с товарами',
         to: '/goods-tools',
         options: '',
-        trouble: 'Требует дополнение методов получения товаров, а также изменения лимитов отдельное ДС для Лакру',
+        trouble: 'Требует дополнение методов получения товаров, а также изменения лимитов',
         worked: 'Работает API получение/отправка настроек категорий',
         icon: <PlumbingRoundedIcon />
     },
@@ -45,11 +45,4 @@ export const routers = [
         trouble: 'Не описан',
         icon: <SwitchAccessShortcutIcon />
     },
-    // {
-    //     id: 5,
-    //     src: 'https://media1.tenor.com/m/mSiXhZqkvDcAAAAC/speed-run2.gif',
-    //     title: 'Конвертер',
-    //     to: '/converter',
-    //     icon: <MoveDownRoundedIcon />
-    // },
 ]

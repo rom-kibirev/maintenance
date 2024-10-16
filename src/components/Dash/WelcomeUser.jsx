@@ -31,8 +31,9 @@ export default function WelcomeUser() {
                             title={item.title}
                         />
                         <CardContent>
+                            <Typography variant="body2" color={colors.greenAccent[500]}>{item.worked}</Typography>
                             <Typography variant="body2" color={colors.blueAccent[400]}>{item.options}</Typography>
-                            <Typography variant="body2" color={colors.redAccent[500]}>{item.trouble}</Typography>
+                            <Typography variant="body2">{item.trouble}</Typography>
                         </CardContent>
                     </Card>
                 ))}
