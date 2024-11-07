@@ -136,24 +136,11 @@ export const sendCategories = async (token, categories) => {
                 return readAccess?.agreement_read;
             });
 
-            // console.log('\n checkAccess', checkAccess);
-
             if (checkAccess?.length > 0) {
-                const data = categories.map(c => {
-
-                    return {
-                        ID: c.ID,
-                        NAME: c.NAME,
-                        ACTIVE: c.ACTIVE,
-                        SORT: c.SORT,
-                        CODE: c.CODE,
-                    };
-                });
-                console.log('\n data', data);
 
                 const response = await axios.patch(
                     `${api}/category`,
-                    JSON.stringify({data}),
+                    {"data":categories},
                     headersRequests('post', token)
                 );
 

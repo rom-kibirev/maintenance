@@ -49,7 +49,7 @@ export const CategoriesData = async () => {
 
     try {
         const files = [
-            '/data/bitrix_29.07.24/categories.json'
+            '/data/bitrix_29.07.24/categories.js'
         ];
 
         // Fetch all files

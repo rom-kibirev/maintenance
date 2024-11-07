@@ -1,3 +1,4 @@
+/* complete*/
 const login = {
     "method": "POST /api/auth/login/",
     "request": {
@@ -8,7 +9,6 @@ const login = {
         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"
     }
 }
-
 const user = {
     "method": "GET /api/user/",
     "response": {
@@ -22,7 +22,6 @@ const user = {
         "groups": [1,3,4,5,7,8,9],
     }
 }
-
 const user_groups = {
     1: "Администраторы",
     3: "Пользователи, имеющие право голосовать за рейтинг",
@@ -33,7 +32,6 @@ const user_groups = {
     8: "Контент-редакторы",
     9: "api"
 }
-
 const get_categories = {
     "method": "GET /api/categories/",
     "response": [
@@ -62,7 +60,6 @@ const get_categories = {
         }
     ]
 }
-
 const post_categories = {
     "method": "PATCH /api/categories/",
     "request": [
@@ -93,7 +90,6 @@ const post_categories = {
     "response": 200,
     "limit": 1000
 }
-
 const get_goods = {
     "method": "GET /api/categories/",
     "response": [
@@ -177,7 +173,6 @@ const get_goods = {
         }
     ]
 }
-
 const post_goods = {
     "method": "PATCH /api/categories/",
     "request": [
@@ -202,6 +197,27 @@ const post_goods = {
     "limit": 1000
 }
 
+/* review */
 const getPriceByGoodId = {
     "method": "POST/GET /api/price/",
+    "ids": [8782, 8783],
+    "response": [
+        {
+            "ID": 8782,
+            "PRICE": "123.45",
+            "CURRENCY": "RUB",
+        },
+        {
+            "ID": 8783,
+            "PRICE": [
+                {
+                  "ID_PRICE": 1,
+                  "PRICE": "123.45",
+                  "CURRENCY": "RUB",
+                  "DATE_ACTIVE_FROM": "2022-01-01 00:00:00",
+                  "DATE_ACTIVE_TO": "2022-12-31 23:59:59",
+                },
+            ],
+        },
+    ]
 }

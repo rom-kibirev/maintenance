@@ -55,7 +55,7 @@ const Sidebar = ({handleLogout, token}) => {
         }
 
         getUserData();
-    },[token]);
+    },[token, handleLogout]);
 
     if (!cookies.token) return null;
 
