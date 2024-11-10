@@ -2,7 +2,7 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import PlumbingRoundedIcon from "@mui/icons-material/PlumbingRounded";
 import SwitchAccessShortcutIcon from '@mui/icons-material/SwitchAccessShortcut';
-// import MoveDownRoundedIcon from '@mui/icons-material/MoveDownRounded';
+import RssFeedIcon from '@mui/icons-material/RssFeed';
 import React from "react";
 
 export const routers = [
@@ -35,6 +35,16 @@ export const routers = [
         trouble: 'Требует дополнение методов получения товаров, а также изменения лимитов',
         worked: 'Работает API получение/отправка настроек категорий',
         icon: <PlumbingRoundedIcon />
+    },
+    {
+        id: 4,
+        src: null,
+        title: 'Сравнение по фиду 1С',
+        to: '/feed-goods-diff',
+        options: '',
+        trouble: '',
+        worked: '',
+        icon: <RssFeedIcon />
     },
     {
         id: 3,

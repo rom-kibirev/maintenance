@@ -31,6 +31,7 @@ export const auth = async (login, password) => {
     }
 };
 
+// get
 export const fetchUserData = async (token) => {
     try {
 
@@ -122,6 +123,7 @@ export const fetchAllGoodsData = async (token) => {
     }
 };
 
+// patch
 export const sendCategories = async (token, categories) => {
 
     try {

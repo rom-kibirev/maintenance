@@ -4,7 +4,7 @@ import Header from "../UI/Theme/Header";
 import {Alert, Box} from "@mui/material";
 import * as XLSX from "xlsx";
 import {fetchCategoryData, sendCategories} from "../../requests/api_v2";
-import {oldCategories} from "../../data/checkCategories/cat";
+// import {oldCategories} from "../../data/checkCategories/cat";
 
 export const CategoriesTools = ({token}) => {
 
@@ -446,11 +446,6 @@ export const CategoriesTools = ({token}) => {
                     {answer.success ? "Данные успешно обновлены" : answer.message}
                 </Alert>
             </Box>}
-            {/*<Box className={`flex flex-wrap gap-2 items-center mb-6`}>*/}
-            {/*    <Button variant="outlined" color="warning" onClick={setRuntecFirst}>Runtec sort 1</Button>*/}
-            {/*    <Button variant="outlined" color="warning" onClick={disableRuntecTest}>Runtec TEST 1 disable</Button>*/}
-            {/*    <Button variant="outlined" color="warning" onClick={renameRuntecTest}>Runtec TEST 2 rename</Button>*/}
-            {/*</Box>*/}
             {categoriesData?.length > 0 &&
                 <PrintCategories
                     data={categoriesData}

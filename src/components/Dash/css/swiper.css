@@ -1,0 +1,32 @@
+/* Стиль обычных точек пагинации */
+.mySwiper .swiper-pagination-bullet {
+    width: 20px;                 /* Ширина индикатора */
+    height: 6px;                 /* Высота индикатора */
+    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный цвет */
+    opacity: 1;                  /* Полная видимость */
+    border-radius: 0;            /* Прямоугольная форма */
+    margin: 0 4px;               /* Расстояние между индикаторами */
+    transition: background-color 0.3s;
+    border: solid 1px #4d4d4d;
+}
+
+/* Стиль активного индикатора */
+.mySwiper .swiper-pagination-bullet-active {
+    background-color: #000; /* Полностью черный цвет для активного индикатора */
+    border: solid 1px #fff;
+}
+
+/* Контейнер Swiper с выравниванием по центру */
+.mySwiper .swiper-slide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+/* Стили для изображения */
+.mySwiper .swiper-slide img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Сохранение пропорций изображения */
+}

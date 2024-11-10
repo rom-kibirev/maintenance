@@ -9,6 +9,7 @@ import Sidebar from "./scenes/global/Sidebar";
 import { ColorModeContext, useMode } from "./theme";
 import {CategoriesTools} from "./components/Dash/CategoriesTools";
 import {GoodsTools} from "./components/Dash/GoodsTools";
+import {FeedGoodsDiff} from "./components/Dash/FeedGoodsDiff";
 
 ThemeProvider.propTypes = {children: PropTypes.node};
 
@@ -48,6 +49,7 @@ function App() {
                                 <Route path="/" element={<WelcomeUser />}/>
                                 <Route path="/categories-tools" element={<CategoriesTools token={cookies.token} />}/>
                                 <Route path="/goods-tools" element={<GoodsTools token={cookies.token} />}/>
+                                <Route path="/feed-goods-diff" element={<FeedGoodsDiff token={cookies.token} />}/>
                             </Routes>
                         </Box>
                     </main>
