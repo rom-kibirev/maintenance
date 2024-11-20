@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Page from "../UI/Theme/Page";
 import axios from "axios";
-import { fetchCategoryData } from "../../requests/api_v2";
+import {fetchCategoryData, fetchUserData} from "../../requests/api_v2"; //, fetchGoodsSelfApiData
 import CategoriesTree from "./CategoriesTree";
 import {Box, FormControlLabel, Switch} from "@mui/material";
 import GoodsList from "./GoodsList";
 import * as XLSX from 'xlsx';
+import SortGoodsTools from "./SortGoodsTools";
 
 export const FeedGoodsDiff = ({ token }) => {
     
@@ -16,11 +17,17 @@ export const FeedGoodsDiff = ({ token }) => {
     const [selectedCategory, setSelectedCategory] = useState(null); // 8785
     const [categoriesIsView, setCategoriesIsView] = useState(true);
 
+    const [currentUser, setCurrentUser] = useState(null);
+    const [IsSortGoods, setIsSortGoods] = useState(false);
+
     useEffect(() => {
-        const getGoodsData = async () => {
+        const getData = async () => {
             try {
                 const categoriesResponse = await fetchCategoryData(token);
                 if (categoriesResponse.success) setCategoriesBySite(categoriesResponse.data.sort((a, b) => a.SORT - b.SORT));
+                //
+                // const goodsData = await fetchGoodsSelfApiData(token);
+                // console.log('\n goodsData', goodsData);
 
                 const lastFileNumber = 7;
                 const filePromises = [];
@@ -52,32 +59,6 @@ export const FeedGoodsDiff = ({ token }) => {
                     }
                 });
 
-                const goodsArray = Array.from(allGoods.values()).sort((a, b) => {
-                    // Сначала сортируем по свойству SORT
-                    if (a.SORT !== b.SORT) {
-                        return a.SORT - b.SORT;
-                    }
-
-                    // Преобразуем бренды в нижний регистр для точного совпадения
-                    const brandA = a.BRAND ? a.BRAND.toLowerCase() : '';
-                    const brandB = b.BRAND ? b.BRAND.toLowerCase() : '';
-
-                    // Определяем порядок брендов
-                    const brandOrder = ['runtec', 'garwin', 'licota', 'металлсервис'];
-
-                    // Функция для получения индекса бренда в списке
-                    const getBrandIndex = (brand) => {
-                        // Ищем индекс в списке, если бренд не найден, возвращаем очень большой индекс
-                        return brandOrder.findIndex(b => brand.includes(b)) !== -1 ? brandOrder.findIndex(b => brand.includes(b)) : brandOrder.length;
-                    };
-
-                    // Сортируем по брендам
-                    return getBrandIndex(brandA) - getBrandIndex(brandB);
-                });
-
-                setGoodsBySite(goodsArray);
-                setFilteredGoodsBySite(goodsArray);
-
                 const goodsByFeedUpdate = await axios.get(`./data/api_v2/goods/products.json`)
                     .then(response => response.data)
                     .catch(error => {
@@ -86,12 +67,36 @@ export const FeedGoodsDiff = ({ token }) => {
                     });
 
                 setGoodsByFeed(goodsByFeedUpdate);
+
+                const feedMap = new Map(goodsByFeedUpdate.map(f => [f.VENDOR, f]));
+
+                const sortedGoods = Array.from(allGoods.values())
+                    .map((g, i) => {
+                        // const pictures = g.PICTURES ? [g.PREVIEW_PICTURE, ...g.PICTURES] : [g.PREVIEW_PICTURE];
+                        return {
+                            ...g,
+                            COUNT: feedMap.get(g.VENDOR)?.count || 0,
+                            SORT: 100+(i*10),
+                            // PICTURES: pictures
+                        };
+                    })
+                .sort((a, b) => b.SORT - a.SORT)
+                .sort((a, b) => b.COUNT - a.COUNT)
+                ;
+                console.log('\n sortedGoods', sortedGoods);
+
+
+                setGoodsBySite(sortedGoods);
+                setFilteredGoodsBySite(sortedGoods);
+
+                const response = await fetchUserData(token);
+                if (response.success) setCurrentUser(response.data);
             } catch (error) {
                 console.error('Ошибка при загрузке данных:', error);
             }
         };
 
-        getGoodsData();
+        getData();
     }, [token]);
 
     useEffect(() => {
@@ -138,8 +143,8 @@ export const FeedGoodsDiff = ({ token }) => {
                     g.ID,
                     g.XML_ID,
                     g.NAME,
-                    g.PICTURES.length,
-                    g.PICTURES.map(p => 'https://runtec-shop.ru/' + p).join(','),
+                    g.PICTURES.filter(p => p).length,
+                    g.PICTURES.map(p => p ? 'https://runtec-shop.ru/' + p : null).join(','),
                     '', // Стоимость на сайте (возможно, нужно доработать)
                     '', // Остатки на сайте (возможно, нужно доработать)
                     goodFeed.picture?.length || 0,
@@ -183,6 +188,10 @@ export const FeedGoodsDiff = ({ token }) => {
         });
     };
 
+    // console.log('\n ', {
+    //     goodsBySite,
+    //     goodsByFeed,
+    // });
 
     return (
         <Page
@@ -190,36 +199,53 @@ export const FeedGoodsDiff = ({ token }) => {
             subtitle=""
             className="h-full"
         >
-            <FormControlLabel
+            {(currentUser?.user_id === 23) && <FormControlLabel
                 control={
                     <Switch
-                        checked={categoriesIsView}
-                        color="warning"
-                        onChange={() => setCategoriesIsView(!categoriesIsView)}
+                        checked={IsSortGoods}
+                        color="error"
+                        onChange={() => setIsSortGoods(!IsSortGoods)}
                     />
                 }
-                label={`${categoriesIsView ? "Показать" : "Скрыть"} категории`}
-            />
-            <Box className="h-full flex flex-row gap-2">
-                {categoriesIsView && <Box className="w-[400px] h-full">
-                    {categoriesBySite && (
-                        <CategoriesTree
-                            categories={categoriesBySite}
-                            selectedCategory={selectedCategory}
-                            setSelectedCategory={setSelectedCategory}
+                label={`${!IsSortGoods ? "Сортировать товары" : "Отмена"}`}
+            />}
+            {(categoriesIsView && !IsSortGoods) && <Box>
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={categoriesIsView}
+                            color="warning"
+                            onChange={() => setCategoriesIsView(!categoriesIsView)}
                         />
-                    )}
-                </Box>}
-                <Box className="flex-1">
-                    {(filteredGoodsBySite?.length > 0 && goodsByFeed?.length > 0) && <GoodsList
-                        selectedCategory={selectedCategory}
-                        categories={categoriesBySite}
-                        goods={filteredGoodsBySite}
-                        feed={goodsByFeed}
-                        exportXLSX={exportXLSX}
-                    />}
+                    }
+                    label={`${categoriesIsView ? "Показать" : "Скрыть"} категории`}
+                />
+                <Box className="h-full flex flex-row gap-2">
+                    {categoriesIsView && <Box className="w-[400px] h-full">
+                        {categoriesBySite && (
+                            <CategoriesTree
+                                categories={categoriesBySite}
+                                selectedCategory={selectedCategory}
+                                setSelectedCategory={setSelectedCategory}
+                            />
+                        )}
+                    </Box>}
+                    <Box className="flex-1">
+                        {(filteredGoodsBySite?.length > 0 && goodsByFeed?.length > 0) && <GoodsList
+                            selectedCategory={selectedCategory}
+                            categories={categoriesBySite}
+                            goods={filteredGoodsBySite}
+                            feed={goodsByFeed}
+                            exportXLSX={exportXLSX}
+                        />}
+                    </Box>
                 </Box>
-            </Box>
+            </Box>}
+            {(IsSortGoods && currentUser?.user_id === 23) && <SortGoodsTools
+                goods={filteredGoodsBySite}
+                setGoods={setFilteredGoodsBySite}
+                token={token}
+            />}
         </Page>
     );
 };

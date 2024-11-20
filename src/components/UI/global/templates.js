@@ -45,3 +45,11 @@ export const groupTypes = {
         "agreement_wright": true,
     },
 };
+
+export const countValue = {
+    0: { label: "Нет в наличии", color: "text-red-400", image: "https://cdn.builder.io/api/v1/image/assets/TEMP/3f2e66d4649609000518808333c63f2a3db0aec5c4893ed7c0ae25fc7b96f690?" },
+    1: { label: "Мало", color: "text-amber-600", image: "https://cdn.builder.io/api/v1/image/assets/TEMP/9463bbc4123ce7b3e5dfa64bf63b30f476cb9f2e77903cea30886a06e1cc6905?" },
+    2: { label: "В наличии", color: "text-lime-600", image: "https://cdn.builder.io/api/v1/image/assets/TEMP/9463bbc4123ce7b3e5dfa64bf63b30f476cb9f2e77903cea30886a06e1cc6905?" }
+};
+
+export const brandList = ["runtec", "garwin", "licota", "металлсервис"];

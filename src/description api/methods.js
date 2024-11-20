@@ -60,7 +60,7 @@ const get_categories = {
         }
     ]
 }
-const post_categories = {
+const patch_categories = {
     "method": "PATCH /api/categories/",
     "request": [
         {
@@ -173,7 +173,7 @@ const get_goods = {
         }
     ]
 }
-const post_goods = {
+const patch_goods = {
     "method": "PATCH /api/categories/",
     "request": [
         {
@@ -211,13 +211,177 @@ const getPriceByGoodId = {
             "ID": 8783,
             "PRICE": [
                 {
-                  "ID_PRICE": 1,
-                  "PRICE": "123.45",
-                  "CURRENCY": "RUB",
-                  "DATE_ACTIVE_FROM": "2022-01-01 00:00:00",
-                  "DATE_ACTIVE_TO": "2022-12-31 23:59:59",
+                    "ID_PRICE": 1,
+                    "PRICE": "123.45",
+                    "CURRENCY": "RUB",
+                    "DATE_ACTIVE_FROM": "2022-01-01 00:00:00",
+                    "DATE_ACTIVE_TO": "2022-12-31 23:59:59",
                 },
             ],
         },
     ]
 }
+
+const getPriceType = {
+    "method": "GET /api/price/",
+    "response": [
+        {
+            "ID_PRICE": 1,
+            "PRICE_NAME": "Розничные",
+            "CURRENCY": "RUB",
+            "DATE_ACTIVE_FROM": "2023-01-01 00:00:00",
+            "DATE_ACTIVE_TO": "2023-12-31 23:59:59"
+        },
+        {
+            "ID_PRICE": 2,
+            "PRICE_NAME": "Опт",
+            "CURRENCY": "RUB",
+            "DATE_ACTIVE_FROM": "2023-01-01 00:00:00",
+            "DATE_ACTIVE_TO": "2023-12-31 23:59:59"
+        },
+    ]
+}
+
+// v1 POST /Order:GetNew
+const OGN_response = [
+    {
+        "order_status": "",
+        "posting_number": "runtec_01",
+        "order_test": true,
+        "customer_id": "4ee86-0153b-4608-862f-5f9383334442",
+        "customer": {
+            "name": "Роман",
+            "email": "kibirev.r@garagetools.ru",
+            "phone": "8 (911) 036-63-32"
+        },
+        "customer_company": {
+            "name": "Наименование компании",
+            "address": "Юридический адрес",
+            "kpp": "КПП",
+            "inn": "ИНН",
+            "ogrn": "ОГРН",
+            "okpo": "ОКПО",
+            "bank": "Наименование банка",
+            "bik": "БИК",
+            "bank_account": "Р/С",
+            "correspondent_account": "К/С",
+            "director": "Ген директор (Ф.И.О.)",
+        },
+        "order_consignee": {
+            "fio": "Роман",
+            "phone": "8 (911) 036-63-32"
+        },
+        "warehouse_id": "b100e18e-baff-11e7-811c-002590d99cf6",
+        "order_delivery": "Доставка до адреса",
+        "order_shipment_date": "2024-07-20",
+        "order_address": {
+            "address": "улица Ленина, д.3",
+            "city": "Республика Саха (Якутия), пос. Мирный",
+            "zip_code": "678174"
+        },
+        "order_delivery_company": "СДЕК",
+        "order_payment_id": "c4dc2f4e-09ba-11e0-81b1-0015175303fd",
+        "order_payment": "Оплата в магазине наличными или картой",
+        "order_comment": "Комментарий пользователя",
+        "order_delivery_cost": "500.00",
+        "order_goods": [
+            {
+                "guid": "4ee86-11e0-4608-0153b-5f9383334342",
+                "quantity": "1.000",
+                "price": "65.00",
+            },
+            {
+                "guid": "ddff34-11e0-4608-0153b-5f9383334342",
+                "quantity": "1.000",
+                "price": "500.00",
+            },
+        ]
+    },
+];
+const updateOrtders =  [
+    {
+        "posting_number": "runtec_01",
+        "customer_id": "4ee86-0153b-4608-862f-5f9383334442",
+        "warehouse_id": "b100e18e-baff-11e7-811c-002590d99cf6",
+        "order_delivery": "Доставка до адреса",
+        "order_shipment_date": "2024-07-20",
+        "order_delivery_date": "2024-07-21",
+        "order_delivery_company": "Деловые линии",
+        "order_address_city": "Санкт-Петербург",
+        "order_address": "Софийская улица, 6к8",
+        "order_payment_id": "c4dc2f4e-09ba-11e0-81b1-0015175303fd",
+        "order_payment": "Наличными при получении",
+        "order_id": "Ц-000457071",
+        "order_price_type_id": "b100e-09ba-11e0-81b1-0015175303fd",
+        "order_price_type": "Розничные",
+        "order_status": "Собран",
+        "order_reject_reason": null,
+        "order_consignee_fio": "Кибирев Роман Сергеевич",
+        "order_consignee_phone": "79110366332",
+        "order_goods": [
+            {
+                "guid": "4ee86-11e0-4608-0153b-5f9383334342",
+                "quantity": "1.000",
+                "price": "65.00",
+            },
+            {
+                "guid": "ddff34-11e0-4608-0153b-5f9383334342",
+                "quantity": "1.000",
+                "price": "500.00",
+            },
+        ]
+    }
+]
+const users = [
+    {
+        "user_id ": 1,
+        "customer_id": "GUID_customer",
+        "order_price_type_id": "GUID_price_type",
+        "customers_id_list": ["GUID_customer","GUID_customer-1","..."],
+        "order_id_list": ["runtec-0001","...","..."],
+        "customer": {
+            "name": "имя",
+            "surname": "фамилия",
+            "order_consignee_fio": "ФИО в 1С",
+            "email": "email",
+            "phone": "79110366332"
+        },
+        "customer_company": [
+            {
+                "customer_id": "GUID_customer-1",
+                "order_price_type_id": "GUID_price_type-1",
+                "order_id_list": ["runtec-0002","...","..."],
+            }
+        ]
+    }
+]
+const orders = [
+    {
+        "posting_number": "runtec-#####",
+        "order_id": "Н-123456",
+        "order_status": "В работе",
+        "order_test": true,
+        "customer_id": "GUID_customer",
+        "order_consignee": {
+            "name": "имя",
+            "surname": "фамилия",
+            "order_consignee_fio": "ФИО в 1С",
+            "email": "email",
+            "phone": "79110366332"
+        },
+        "warehouse_id": "GUID_warehouse",
+        "order_delivery": "Самовывоз",
+        "order_delivery_company": "Петрович",
+        "order_delivery_cost": "123.45",
+        "order_payment_id": "GUID_payment",
+        "order_payment": "Оплата наличными курьеру Гарвин",
+        "order_comment": "Комментарий пользователя",
+        "order_goods": [
+            {
+                "guid": "{goods.XML_ID}",
+                "quantity": "1.000",
+                "price": "65.00",
+            },
+        ],
+    }
+]

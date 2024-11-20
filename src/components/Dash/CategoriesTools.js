@@ -3,7 +3,7 @@ import PrintCategories from "./PrintCategories";
 import Header from "../UI/Theme/Header";
 import {Alert, Box} from "@mui/material";
 import * as XLSX from "xlsx";
-import {fetchCategoryData, sendCategories} from "../../requests/api_v2";
+import {fetchCategoryData, fetchUserData, patchCategories} from "../../requests/api_v2";
 // import {oldCategories} from "../../data/checkCategories/cat";
 
 export const CategoriesTools = ({token}) => {
@@ -11,10 +11,11 @@ export const CategoriesTools = ({token}) => {
     const [categoriesData, setCategoriesData] = useState(null);
     const [answer, setAnswer] = useState(null);
     // const [changedIdList, setChangedIdList] = useState([]);
+    const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
 
-        const getCategoriesData = async () => {
+        const getData = async () => {
 
             // console.log('\n ', token);
 
@@ -84,9 +85,12 @@ export const CategoriesTools = ({token}) => {
             } else {
                 setAnswer(updateCategories);
             }
+
+            const response = await fetchUserData(token);
+            if (response.success) setCurrentUser(response.data);
         }
 
-        getCategoriesData();
+        getData();
     }, [token]);
 
     // useEffect(() => {
@@ -431,12 +435,13 @@ export const CategoriesTools = ({token}) => {
 
         // const changedCategories = categoriesData.filter(c => changedIdList.includes(c.ID));
 
-        const response = await sendCategories(token, categoriesData);
+        const response = await patchCategories(token, categoriesData);
         if (response?.success) {
             console.log('\n response', response.data);
             setAnswer({success: true, message: "Данные успешно обновлены" });
         }
     }
+    console.log('\n currentUser', currentUser);
 
     return (
         <Box>
@@ -453,6 +458,7 @@ export const CategoriesTools = ({token}) => {
                     uploadXlsxHandler={uploadXlsxHandler}
                     sendChangedCategoriesHandler={sendChangedCategoriesHandler}
                     restoreXlsxHandler={restoreXlsxHandler}
+                    currentUser={currentUser}
                 />
             }
         </Box>

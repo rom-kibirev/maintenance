@@ -9,7 +9,7 @@ import UnfoldMoreOutlinedIcon from '@mui/icons-material/UnfoldMoreOutlined';
 import OpenInBrowserRoundedIcon from '@mui/icons-material/OpenInBrowserRounded';
 import VisuallyHiddenInput from "../UI/Buttons/Button";
 
-export default function PrintCategories({ data, saveXlsxHandler, uploadXlsxHandler, sendChangedCategoriesHandler }) {
+export default function PrintCategories({ data, saveXlsxHandler, uploadXlsxHandler, sendChangedCategoriesHandler, currentUser }) {
 
     const [categories, setCategories] = useState([]);
     const [isAllOpened, setIsAllOpened] = useState(false);
@@ -184,14 +184,14 @@ export default function PrintCategories({ data, saveXlsxHandler, uploadXlsxHandl
                     Загрузить XLSX
                     <VisuallyHiddenInput type="file" onChange={uploadXlsxHandler} />
                 </Button>
-                <Button
+                {currentUser?.user_id === 23 && <Button
                     color="error"
                     variant="outlined"
                     onClick={sendChangedCategoriesHandler}
-                    startIcon={<OpenInBrowserRoundedIcon />}
+                    startIcon={<OpenInBrowserRoundedIcon/>}
                 >
                     Отправить данные на сайт
-                </Button>
+                </Button>}
             </Box>
             <Box className="h-[550px] flex flex-row gap-3 text-[#f1f1ef] text-[15px] bg-[#212529] p-1">
                 <ul className="bg-[#464B4F] rounded-xl p-3 w-[300px] h-full overflow-y-auto">

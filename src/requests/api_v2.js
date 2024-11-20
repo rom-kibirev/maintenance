@@ -77,6 +77,54 @@ export const fetchCategoryData = async (token) => {
         };
     }
 };
+export const fetchGoodsSelfApiData = async (token) => {
+    try {
+        // URL фида
+        const feedUrl = "https://feeds.garwin.ru/6462f219-94a8-4b31-9a04-439c654adcb2/yandex.xml";
+
+        // Шаг 1: Отправляем запрос для запуска обработки
+        await axios.post(
+            "https://maintenance.runtec-shop.com/api/feedReport.php",
+            new URLSearchParams({ feed_url: feedUrl }),
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            }
+        );
+
+        console.log("Обработка началась. Ожидание завершения...");
+
+        // Шаг 2: Проверяем статус обработки в цикле
+        while (true) {
+            // Ждем 1 секунду перед запросом статуса
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            // Получаем статус обработки
+            const response = await axios.get("https://maintenance.runtec-shop.com/api/feedReport.php", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const status = response.data;
+            console.log("Текущий статус:", status);
+
+            // Если прогресс завершен, возвращаем результат
+            if (status.progress === 100) {
+                console.log("Обработка завершена.");
+                return status; // Возвращаем финальный результат обработки
+            }
+
+            // Логирование текущего прогресса
+            console.log(`Прогресс: ${status.progress}% (${status.status})`);
+        }
+    } catch (err) {
+        console.error("Ошибка в fetchGoodsSelfApiData:", err.response?.data || err.message);
+        throw new Error(err.response?.data || "Не удалось завершить обработку");
+    }
+};
 export const fetchAllGoodsData = async (token) => {
     try {
         // Первый запрос для получения информации о страницах и данных первой страницы
@@ -124,7 +172,7 @@ export const fetchAllGoodsData = async (token) => {
 };
 
 // patch
-export const sendCategories = async (token, categories) => {
+export const patchCategories = async (token, categories) => {
 
     try {
         const getUserData = await fetchUserData(token);
@@ -163,3 +211,43 @@ export const sendCategories = async (token, categories) => {
         };
     }
 }
+
+export const updateGoodsInBatches = async (token, goods) => {
+    const batchSize = 100; // Размер партии
+    const totalBatches = Math.ceil(goods.length / batchSize); // Общее количество партий
+    const apiUrl = `${api}/goods`;
+    let updatedCount = 0;
+
+    console.log(`Начало обновления товаров. Всего товаров: ${goods.length}, партий: ${totalBatches}`);
+
+    for (let i = 0; i < totalBatches; i++) {
+        const batch = goods.slice(i * batchSize, (i + 1) * batchSize); // Выделяем текущую партию
+        console.log(`Отправка партии ${i + 1} из ${totalBatches}. Количество товаров в партии: ${batch.length}`);
+
+        try {
+            const response = await axios.patch(
+                apiUrl,
+                { data: batch },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                updatedCount += batch.length;
+                console.log(`Партия ${i + 1} успешно обновлена. Обновлено товаров: ${updatedCount}`);
+            } else {
+                console.warn(`Проблема с обновлением партии ${i + 1}. Статус: ${response.status}`);
+            }
+        } catch (error) {
+            console.error(`Ошибка при обновлении партии ${i + 1}:`, error.response ? error.response.data : error.message);
+            break; // Прекращаем выполнение при ошибке
+        }
+    }
+
+    console.log(`Обновление завершено. Всего успешно обновлено товаров: ${updatedCount}`);
+};

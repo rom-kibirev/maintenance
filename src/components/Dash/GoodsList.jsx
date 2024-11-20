@@ -1,13 +1,14 @@
-import { Box, FormControlLabel, Switch, Button, Typography, TextField } from "@mui/material";
+import {Box, FormControlLabel, Switch, Button, Typography, TextField, ImageListItem, ImageList} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { Price } from "../UI/global/Price";
 import ImageCarousel from "../UI/ImageCarousel";
 import BrowserUpdatedOutlinedIcon from "@mui/icons-material/BrowserUpdatedOutlined";
+import {countValue} from "../UI/global/templates";
 
 export default function GoodsList({ goods, feed, categories, selectedCategory, exportXLSX }) {
-    const [isFeed, setIsFeed] = useState(true);
+    const [isFeed, setIsFeed] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 30;
+    const itemsPerPage = 28;
 
     useEffect(() => {
         setCurrentPage(1);
@@ -25,19 +26,35 @@ export default function GoodsList({ goods, feed, categories, selectedCategory, e
         pageNumbers.push(i);
     }
 
-    const countValue = {
-        0: { label: "Нет в наличии", color: "text-red-400", image: "https://cdn.builder.io/api/v1/image/assets/TEMP/3f2e66d4649609000518808333c63f2a3db0aec5c4893ed7c0ae25fc7b96f690?" },
-        1: { label: "Мало", color: "text-amber-600", image: "https://cdn.builder.io/api/v1/image/assets/TEMP/9463bbc4123ce7b3e5dfa64bf63b30f476cb9f2e77903cea30886a06e1cc6905?" },
-        2: { label: "В наличии", color: "text-lime-600", image: "https://cdn.builder.io/api/v1/image/assets/TEMP/9463bbc4123ce7b3e5dfa64bf63b30f476cb9f2e77903cea30886a06e1cc6905?" }
-    };
+    function getDeclension(count) {
+        const lastTwoDigits = count % 100;
+
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
+            return `${count} точках`;
+        }
+
+        const lastDigit = count % 10;
+        switch (lastDigit) {
+            case 1:
+                return `${count} точке`;
+            case 2:
+            case 3:
+            case 4:
+                return `${count} точках`;
+            default:
+                return `${count} точках`;
+        }
+    }
+
+    const [isAddImgCategory, ] = useState(false); //setIsAddImgCategory
 
     return (
         <Box>
             <Box className={`flex flex-row gap-2 items-center mb-2`}>
-                <FormControlLabel
-                    control={<Switch checked={isFeed} color="success" onChange={() => setIsFeed(!isFeed)} />}
+                {!isAddImgCategory && <FormControlLabel
+                    control={<Switch checked={isFeed} color="success" onChange={() => setIsFeed(!isFeed)}/>}
                     label={`Данные ${isFeed ? "из фида" : "с сайта"}`}
-                />
+                />}
                 <TextField label="Количество товаров" variant="outlined" disabled value={goods.length} />
                 <Button
                     color="success"
@@ -47,6 +64,13 @@ export default function GoodsList({ goods, feed, categories, selectedCategory, e
                 >
                     Скачать XLSX
                 </Button>
+                {/*<FormControlLabel*/}
+                {/*    control={<Switch checked={!!isAddImgCategory} color="error" onChange={() => {*/}
+                {/*        setIsAddImgCategory(!isAddImgCategory);*/}
+                {/*        setIsFeed(false);*/}
+                {/*    }} />}*/}
+                {/*    label={`${isAddImgCategory ? "Отмена" : "Назначить категории изображение"}`}*/}
+                {/*/>*/}
             </Box>
 
             {totalPages > 1 && (
@@ -61,10 +85,15 @@ export default function GoodsList({ goods, feed, categories, selectedCategory, e
                 </Box>
             )}
 
-            <Box className="flex gap-2 flex-wrap w-full overflow-y-auto h-[70vh]">
+            <Box className="flex gap-3 flex-wrap overflow-y-auto h-[70vh]">
                 {displayedGoods.map((g) => {
                     const feedGoods = feed?.find((f) => f.VENDOR === g.VENDOR);
-                    const pictures = (isFeed && feedGoods) ? feedGoods?.picture : g.PICTURES;
+                    const pictures = (isFeed && feedGoods)
+                        ? feedGoods?.picture
+                        : g.PICTURES
+                            ? [g.PREVIEW_PICTURE, ...g.PICTURES]
+                            : [g.PREVIEW_PICTURE]
+                    ;
                     const price = isFeed && feedGoods ? feedGoods?.price : null;
                     const count = isFeed && feedGoods ? feedGoods?.count : null;
                     let countStatus = 0;
@@ -76,36 +105,59 @@ export default function GoodsList({ goods, feed, categories, selectedCategory, e
                         countStatus = 2;
                     }
 
+                    const warehouse = feedGoods?.warehouse;
+                    // console.log('\n pictures', pictures);
+
                     return (
-                        <Box className="w-[230px] p-3" key={g.ID}>
-                            <a
-                                target={"_blank"}
-                                href={`https://runtec-shop.ru/catalog/${groupCode}/${g.CODE}/`}
-                                rel="noreferrer"
-                                title={g.NAME}
-                            >
-                                <ImageCarousel
-                                    pictures={pictures || []}
-                                    altText={g.NAME}
-                                    isFeed={isFeed}
-                                />
-                                <Box className={`text-xl ${!price ? 'text-red-600' : ''}`}>{price ? Price(price) + ' р.' : "Нет цены"}</Box>
-                                <Box className={`text-white text-sm leading-5 mt-3 max-h-[40px] overflow-hidden sale-item-name`}>{g.NAME}</Box>
-                                <Box className="flex flex-row gap-2 w-full justify-between mt-2">
-                                    <Typography>{g.VENDOR}</Typography>
-                                    <Typography>{g.BRAND}</Typography>
-                                </Box>
-                                <div className="justify-between items-center flex gap-1">
-                                    <img
-                                        loading="lazy"
-                                        src={countValue[countStatus].image}
-                                        className="aspect-square object-contain object-center w-3.5 overflow-hidden shrink-0 max-w-full my-auto"
-                                        alt=''
+                        !isAddImgCategory ? <Box className="w-full md:w-1/3 lg:w-1/4 xl:w-1/5" key={g.ID}>
+                                <a
+                                    target={"_blank"}
+                                    href={`https://runtec-shop.ru/catalog/${groupCode}/${g.CODE}/`}
+                                    rel="noreferrer"
+                                    title={g.NAME}
+                                >
+                                    <ImageCarousel
+                                        pictures={pictures || []}
+                                        altText={g.NAME}
+                                        isFeed={isFeed}
                                     />
-                                    <div className={`${countValue[countStatus].color} text-sm leading-4 self-stretch grow whitespace-nowrap`}>{countValue[countStatus].label}</div>
-                                </div>
-                            </a>
-                        </Box>
+                                    <Box
+                                        className={`text-xl ${!price ? 'text-red-600' : ''}`}>{price ? Price(price) + ' р.' : "Нет цены"}</Box>
+                                    <Box
+                                        className={`text-white text-sm leading-5 mt-3 max-h-[40px] overflow-hidden sale-item-name`}>{g.NAME}</Box>
+                                    <Box className="flex flex-row gap-2 w-full justify-between mt-2">
+                                        <Typography>{g.VENDOR}</Typography>
+                                        <Typography>{g.BRAND}</Typography>
+                                    </Box>
+                                    <div className="justify-between items-center flex gap-1">
+                                        <img
+                                            loading="lazy"
+                                            src={countValue[countStatus].image}
+                                            className="aspect-square object-contain object-center w-3.5 overflow-hidden shrink-0 max-w-full my-auto"
+                                            alt=''
+                                        />
+                                        <div
+                                            className={`${countValue[countStatus].color} text-sm leading-4 self-stretch grow whitespace-nowrap`}
+                                        >
+                                            {countValue[countStatus].label}
+                                            {countStatus === 2 &&
+                                                ` на ${getDeclension(warehouse?.length)}`}
+                                        </div>
+                                    </div>
+                                </a>
+                            </Box> :
+                            <ImageList variant="woven" cols={4} gap={8}>
+                                {pictures.filter(p=>p).map((item) => (
+                                    <ImageListItem key={item.img}>
+                                        <img
+                                            srcSet={`https://runtec-shop.ru/${item}?w=161&fit=crop&auto=format&dpr=2 2x`}
+                                            src={`https://runtec-shop.ru/${item}?w=161&fit=crop&auto=format`}
+                                            alt={""}
+                                            loading="lazy"
+                                        />
+                                    </ImageListItem>
+                                ))}
+                            </ImageList>
                     );
                 })}
             </Box>
