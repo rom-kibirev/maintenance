@@ -211,7 +211,6 @@ export const patchCategories = async (token, categories) => {
         };
     }
 }
-
 export const updateGoodsInBatches = async (token, goods) => {
     const batchSize = 100; // Размер партии
     const totalBatches = Math.ceil(goods.length / batchSize); // Общее количество партий

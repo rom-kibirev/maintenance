@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Page from "../UI/Theme/Page";
 import axios from "axios";
-import {fetchCategoryData, fetchUserData} from "../../requests/api_v2"; //, fetchGoodsSelfApiData
+import {fetchCategoryData, fetchUserData, patchCategories} from "../../requests/api_v2"; //, fetchGoodsSelfApiData
 import CategoriesTree from "./CategoriesTree";
 import {Box, FormControlLabel, Switch} from "@mui/material";
 import GoodsList from "./GoodsList";
 import * as XLSX from 'xlsx';
 import SortGoodsTools from "./SortGoodsTools";
+import AddCategoryImages from "./AddCategoryImages";
 
 export const FeedGoodsDiff = ({ token }) => {
     
@@ -14,11 +15,12 @@ export const FeedGoodsDiff = ({ token }) => {
     const [goodsBySite, setGoodsBySite] = useState(null);
     const [filteredGoodsBySite, setFilteredGoodsBySite] = useState(null);
     const [goodsByFeed, setGoodsByFeed] = useState(null);
-    const [selectedCategory, setSelectedCategory] = useState(null); // 8785
+    const [selectedCategory, setSelectedCategory] = useState(8798); // 8785
     const [categoriesIsView, setCategoriesIsView] = useState(true);
 
     const [currentUser, setCurrentUser] = useState(null);
-    const [IsSortGoods, setIsSortGoods] = useState(false);
+    const [isSortGoods, setIsSortGoods] = useState(false);
+    const [isAddCategoryImage, setIsAddCategoryImage] = useState(true);
 
     useEffect(() => {
         const getData = async () => {
@@ -83,7 +85,7 @@ export const FeedGoodsDiff = ({ token }) => {
                 .sort((a, b) => b.SORT - a.SORT)
                 .sort((a, b) => b.COUNT - a.COUNT)
                 ;
-                console.log('\n sortedGoods', sortedGoods);
+                // console.log('\n sortedGoods', sortedGoods);
 
 
                 setGoodsBySite(sortedGoods);
@@ -193,23 +195,55 @@ export const FeedGoodsDiff = ({ token }) => {
     //     goodsByFeed,
     // });
 
+    const patchCategoryImage = async (img) => {
+        try {
+
+            const currentCategory = categoriesBySite?.find(c => c.ID === selectedCategory);
+
+            currentCategory.PREVIEW_PICTURE = 'https://runtec-shop.ru/' + img;
+
+            console.log('\n patchCategoryImage', {
+                // categoriesBySite,
+                currentCategory,
+                img,
+            });
+            
+            const response = await patchCategories(token, [currentCategory]);
+            console.log('\n ', response);
+        } catch (error) {
+            console.error('Error patching category image:', error);
+        }
+    }
+
     return (
         <Page
             label="Сравнение по фиду"
             subtitle=""
             className="h-full"
         >
-            {(currentUser?.user_id === 23) && <FormControlLabel
-                control={
-                    <Switch
-                        checked={IsSortGoods}
-                        color="error"
-                        onChange={() => setIsSortGoods(!IsSortGoods)}
-                    />
-                }
-                label={`${!IsSortGoods ? "Сортировать товары" : "Отмена"}`}
-            />}
-            {(categoriesIsView && !IsSortGoods) && <Box>
+            {(currentUser?.user_id === 23) && <Box>
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={isSortGoods}
+                            color="error"
+                            onChange={() => setIsSortGoods(!isSortGoods)}
+                        />
+                    }
+                    label={`${!isSortGoods ? "Сортировать товары" : "Отмена"}`}
+                />
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={!!isAddCategoryImage}
+                            color="success"
+                            onChange={() => setIsAddCategoryImage(!isAddCategoryImage)}
+                        />
+                    }
+                    label={`${!isSortGoods ? "Добавить изображение категории" : "Отмена"}`}
+                />
+            </Box>}
+            {(categoriesIsView && !isSortGoods) && <Box>
                 <FormControlLabel
                     control={
                         <Switch
@@ -231,17 +265,24 @@ export const FeedGoodsDiff = ({ token }) => {
                         )}
                     </Box>}
                     <Box className="flex-1">
-                        {(filteredGoodsBySite?.length > 0 && goodsByFeed?.length > 0) && <GoodsList
-                            selectedCategory={selectedCategory}
-                            categories={categoriesBySite}
-                            goods={filteredGoodsBySite}
-                            feed={goodsByFeed}
-                            exportXLSX={exportXLSX}
-                        />}
+                        {isAddCategoryImage ? <AddCategoryImages
+                                selectedCategory={selectedCategory}
+                                categories={categoriesBySite}
+                                goods={goodsBySite}
+                                patchCategoryImage={patchCategoryImage}
+                            /> :
+                            (filteredGoodsBySite?.length > 0 && goodsByFeed?.length > 0) && <GoodsList
+                                selectedCategory={selectedCategory}
+                                categories={categoriesBySite}
+                                goods={filteredGoodsBySite}
+                                feed={goodsByFeed}
+                                exportXLSX={exportXLSX}
+                            />
+                        }
                     </Box>
                 </Box>
             </Box>}
-            {(IsSortGoods && currentUser?.user_id === 23) && <SortGoodsTools
+            {(isSortGoods && currentUser?.user_id === 23) && <SortGoodsTools
                 goods={filteredGoodsBySite}
                 setGoods={setFilteredGoodsBySite}
                 token={token}
