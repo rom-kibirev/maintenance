@@ -1,26 +1,28 @@
 import React, { useEffect, useState } from "react";
 import Page from "../UI/Theme/Page";
-import axios from "axios";
-import {fetchCategoryData, fetchUserData, patchCategories} from "../../requests/api_v2"; //, fetchGoodsSelfApiData
+import {fetchCategoryData, fetchUserData, patchCategories} from "../../requests/api_v2";
 import CategoriesTree from "./CategoriesTree";
 import {Box, FormControlLabel, Switch} from "@mui/material";
 import GoodsList from "./GoodsList";
 import * as XLSX from 'xlsx';
 import SortGoodsTools from "./SortGoodsTools";
 import AddCategoryImages from "./AddCategoryImages";
+import {fetchGoodsData} from "../UI/global/sortTools";
 
 export const FeedGoodsDiff = ({ token }) => {
     
     const [categoriesBySite, setCategoriesBySite] = useState(null);
     const [goodsBySite, setGoodsBySite] = useState(null);
     const [filteredGoodsBySite, setFilteredGoodsBySite] = useState(null);
-    const [goodsByFeed, setGoodsByFeed] = useState(null);
-    const [selectedCategory, setSelectedCategory] = useState(8798); // 8785
+    const [goodsByFeed, setGoodsByFeed] = useState(null); // setGoodsByFeed
+    const [selectedCategory, setSelectedCategory] = useState(null); // 8785
     const [categoriesIsView, setCategoriesIsView] = useState(true);
+
+    if (selectedCategory) console.log('\n selectedCategory', selectedCategory);
 
     const [currentUser, setCurrentUser] = useState(null);
     const [isSortGoods, setIsSortGoods] = useState(false);
-    const [isAddCategoryImage, setIsAddCategoryImage] = useState(true);
+    const [isAddCategoryImage, setIsAddCategoryImage] = useState(false);
 
     useEffect(() => {
         const getData = async () => {
@@ -31,65 +33,12 @@ export const FeedGoodsDiff = ({ token }) => {
                 // const goodsData = await fetchGoodsSelfApiData(token);
                 // console.log('\n goodsData', goodsData);
 
-                const lastFileNumber = 7;
-                const filePromises = [];
-                const allGoods = new Map();  // Используем Map для устранения дублирующихся ключей
+                const { goods, feed } = await fetchGoodsData(token, true);
+                // console.log('\n sortedGoods', goods);
 
-                for (let i = 1; i <= lastFileNumber; i++) {
-                    const fileName = `all_products_part_${i}.json`;
-
-                    filePromises.push(
-                        axios.get(`./data/api_v2/goods/${fileName}`)
-                            .then(response => response.data)
-                            .catch(error => {
-                                console.log(`Ошибка при загрузке ${fileName}:`, error);
-                                return null;
-                            })
-                    );
-                }
-
-                const responses = await Promise.all(filePromises);
-
-                responses.forEach(response => {
-                    if (response) {
-                        response.forEach(good => {
-                            // Проверка на уникальность ID
-                            if (!allGoods.has(good.ID)) {
-                                allGoods.set(good.ID, good);
-                            }
-                        });
-                    }
-                });
-
-                const goodsByFeedUpdate = await axios.get(`./data/api_v2/goods/products.json`)
-                    .then(response => response.data)
-                    .catch(error => {
-                        console.log(`Ошибка при загрузке feed data`, error);
-                        return null;
-                    });
-
-                setGoodsByFeed(goodsByFeedUpdate);
-
-                const feedMap = new Map(goodsByFeedUpdate.map(f => [f.VENDOR, f]));
-
-                const sortedGoods = Array.from(allGoods.values())
-                    .map((g, i) => {
-                        // const pictures = g.PICTURES ? [g.PREVIEW_PICTURE, ...g.PICTURES] : [g.PREVIEW_PICTURE];
-                        return {
-                            ...g,
-                            COUNT: feedMap.get(g.VENDOR)?.count || 0,
-                            SORT: 100+(i*10),
-                            // PICTURES: pictures
-                        };
-                    })
-                .sort((a, b) => b.SORT - a.SORT)
-                .sort((a, b) => b.COUNT - a.COUNT)
-                ;
-                // console.log('\n sortedGoods', sortedGoods);
-
-
-                setGoodsBySite(sortedGoods);
-                setFilteredGoodsBySite(sortedGoods);
+                setGoodsBySite(goods);
+                setFilteredGoodsBySite(goods);
+                setGoodsByFeed(feed);
 
                 const response = await fetchUserData(token);
                 if (response.success) setCurrentUser(response.data);
@@ -202,18 +151,31 @@ export const FeedGoodsDiff = ({ token }) => {
 
             currentCategory.PREVIEW_PICTURE = 'https://runtec-shop.ru/' + img;
 
-            console.log('\n patchCategoryImage', {
-                // categoriesBySite,
-                currentCategory,
-                img,
-            });
+            // console.log('\n patchCategoryImage', {
+            //     // categoriesBySite,
+            //     currentCategory,
+            //     img,
+            // });
             
             const response = await patchCategories(token, [currentCategory]);
-            console.log('\n ', response);
+            // console.log('\n ', response.success);
+            if (response.success) {
+                const categoriesResponse = await fetchCategoryData(token);
+                if (categoriesResponse.success) setCategoriesBySite(categoriesResponse.data.sort((a, b) => a.SORT - b.SORT));
+            }
         } catch (error) {
             console.error('Error patching category image:', error);
         }
     }
+
+    // console.log('\n ', {
+    //         filteredGoodsBySite,
+    //         goodsByFeed,
+    //     },
+    //     (filteredGoodsBySite && goodsByFeed),
+    //     filteredGoodsBySite?.length, goodsByFeed?.length,
+    //     (filteredGoodsBySite?.length > 0 && goodsByFeed?.length > 0),
+    // );
 
     return (
         <Page
@@ -232,18 +194,8 @@ export const FeedGoodsDiff = ({ token }) => {
                     }
                     label={`${!isSortGoods ? "Сортировать товары" : "Отмена"}`}
                 />
-                <FormControlLabel
-                    control={
-                        <Switch
-                            checked={!!isAddCategoryImage}
-                            color="success"
-                            onChange={() => setIsAddCategoryImage(!isAddCategoryImage)}
-                        />
-                    }
-                    label={`${!isSortGoods ? "Добавить изображение категории" : "Отмена"}`}
-                />
             </Box>}
-            {(categoriesIsView && !isSortGoods) && <Box>
+            {(!isSortGoods) && <Box>
                 <FormControlLabel
                     control={
                         <Switch
@@ -254,6 +206,16 @@ export const FeedGoodsDiff = ({ token }) => {
                     }
                     label={`${categoriesIsView ? "Показать" : "Скрыть"} категории`}
                 />
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={!!isAddCategoryImage}
+                            color="success"
+                            onChange={() => setIsAddCategoryImage(!isAddCategoryImage)}
+                        />
+                    }
+                    label={`${!isSortGoods ? "Добавить изображение категории" : "Отмена"}`}
+                />
                 <Box className="h-full flex flex-row gap-2">
                     {categoriesIsView && <Box className="w-[400px] h-full">
                         {categoriesBySite && (
@@ -261,17 +223,19 @@ export const FeedGoodsDiff = ({ token }) => {
                                 categories={categoriesBySite}
                                 selectedCategory={selectedCategory}
                                 setSelectedCategory={setSelectedCategory}
+                                isAddCategoryImage={isAddCategoryImage}
                             />
                         )}
                     </Box>}
                     <Box className="flex-1">
-                        {isAddCategoryImage ? <AddCategoryImages
+                        {(isAddCategoryImage && goodsBySite) ? <AddCategoryImages
                                 selectedCategory={selectedCategory}
                                 categories={categoriesBySite}
                                 goods={goodsBySite}
                                 patchCategoryImage={patchCategoryImage}
                             /> :
-                            (filteredGoodsBySite?.length > 0 && goodsByFeed?.length > 0) && <GoodsList
+                            (filteredGoodsBySite?.length > 0 && goodsByFeed?.length > 0) &&
+                            <GoodsList
                                 selectedCategory={selectedCategory}
                                 categories={categoriesBySite}
                                 goods={filteredGoodsBySite}

@@ -14,7 +14,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import CancelIcon from '@mui/icons-material/Cancel';
 
-export default function CategoriesTree({ categories, selectedCategory, setSelectedCategory }) {
+export default function CategoriesTree({ categories, selectedCategory, setSelectedCategory, isAddCategoryImage }) {
 
     const [isActive, setIsActive] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -68,7 +68,13 @@ export default function CategoriesTree({ categories, selectedCategory, setSelect
                     className="flex items-center justify-start"
                     sx={{ textTransform: "none" }}
                 >
-                    <span className={`mr-2`}>{level}</span>
+                    {(category.PREVIEW_PICTURE) ? <Box className={`mr-3 rounded-md overflow-hidden`}>
+                        <img
+                            src={category.PREVIEW_PICTURE}
+                            alt={category.NAME}
+                            style={{ width: 64, height: 64, objectFit: "cover" }}
+                        />
+                    </Box> : <span className={`mr-2`}>{level}</span>}
                     {category.NAME}
                 </Button>
                 {category.children && category.children.length > 0 && (
@@ -86,6 +92,8 @@ export default function CategoriesTree({ categories, selectedCategory, setSelect
             )}
         </Box>
     );
+
+    // console.log('\n categoryTree', categoryTree);
 
     return (
         <Box className={`relative h-full`}>
