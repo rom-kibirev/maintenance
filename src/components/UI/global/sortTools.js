@@ -1,14 +1,14 @@
-import {fetchCategoryData} from "../../../requests/api_v2";
+import {fetchCategories} from "../../../requests/api_v2";
 import axios from "axios";
+import {brandList} from "./templates";
+import * as XLSX from 'xlsx';
 
+// Функция для получения товаров
 export async function fetchGoodsData(token, withoutCombine) {
     try {
-        // Загружаем категории
-        const categoriesResponse = await fetchCategoryData(token);
-        const categories = categoriesResponse.success
-            ? categoriesResponse.data.sort((a, b) => a.SORT - b.SORT)
-            : []
-        ;
+        // Получаем категории
+        const categories = await fetchCategories(token);
+
         const lastFileNumber = 7;
 
         // Загружаем части товаров
@@ -49,33 +49,28 @@ export async function fetchGoodsData(token, withoutCombine) {
         const feedMap = new Map(goodsByFeedUpdate.map((f) => [f.VENDOR, f]));
 
         // Обрабатываем товары
-        const sortedGoods = Array.from(allGoods.values())
-            .map((g,i) => {
+        const goods = Array.from(allGoods.values())
+            .map((g, i) => {
                 const feedData = !withoutCombine && feedMap.get(g.VENDOR);
                 const pictures = g.PICTURES ? [g.PREVIEW_PICTURE, ...g.PICTURES] : [g.PREVIEW_PICTURE];
                 const categoryGoods = categories.find(c => c.ID === g.CATEGORY_ID);
 
-                // if (i > 0 && i < 10) console.log(
-                //     '\n category', categoryGoods,
-                //     '\n g', g,
-                // );
-
                 return {
                     ...g,
-                    COUNT: feedData?.count || 0,
-                    WAREHOUSE: feedData?.warehouse?.length || 0,
-                    PRICE: feedData?.price || 0,
+                    COUNT: feedData?.count || null,
+                    WAREHOUSE: feedData?.warehouse?.length || null,
+                    PRICE: feedData?.price || null,
                     PICTURES: pictures,
-                    CODE: `${categoryGoods.CODE}/${g.CODE}`
+                    LINK: `${categoryGoods?.CODE}/${g.CODE}`
                 };
             })
-            // .filter((g) => (withoutCombine && g.PRICE > 0))
+            .sort((a, b) => b.SORT - a.SORT)
         ;
 
         // Выполняем сортировку
-        const finalGoods = sortAndUpdateProducts(sortedGoods);
+        // const finalGoods = sortAndUpdateProducts(goods);
 
-        return { categories, goods: finalGoods, feed: goodsByFeedUpdate };
+        return { categories, goods: goods, feed: goodsByFeedUpdate };
     } catch (error) {
         console.error("Ошибка при загрузке данных:", error);
         return { categories: [], goods: [] };
@@ -148,4 +143,190 @@ export const spellerYandex = async (text) => {
         console.error("Ошибка при загрузке данных:", error);
         return { categories: [], goods: [] };
     }
+}
+
+export function sortProductsByBrand(products) {
+    // Преобразуем список брендов в нижний регистр для консистентности
+    const brandPriority = brandList.map((brand) => brand.toLowerCase());
+
+    const getBrandPriority = (brand) => {
+        const index = brandPriority.indexOf((brand || '').toLowerCase());
+        return index === -1 ? Infinity : index; // Если бренда нет, отдаем самый низкий приоритет
+    };
+
+    // Создаем копию продуктов для сортировки
+    const sortedProducts = [...products].sort((a, b) => {
+        const priorityA = getBrandPriority(a.BRAND);
+        const priorityB = getBrandPriority(b.BRAND);
+
+        // Сначала сортируем по приоритету бренда
+        if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+        }
+
+        // Если приоритеты одинаковы, сортируем по исходному значению SORT
+        return a.SORT - b.SORT;
+    });
+
+    // Переопределяем значение SORT для всех товаров
+    let sortValue = 600;
+    sortedProducts.forEach((product) => {
+        product.SORT = sortValue;
+        sortValue += 10;
+    });
+
+    // Лог результата для проверки
+    // console.log("Sorted Products (by brand and SORT):", sortedProducts);
+
+    return sortedProducts;
+}
+
+
+export function generateSortStatistics(products) {
+    const statistics = {};
+
+    products.forEach(product => {
+        const brand = brandList.includes(product.BRAND?.toLowerCase())
+            ? product.BRAND
+            : "ПРОЧИЕ";
+        const sortValue = product.SORT;
+
+        if (!statistics[brand]) {
+            statistics[brand] = [];
+        }
+
+        statistics[brand].push(sortValue);
+    });
+
+    // console.log("Statistics before ranges:", statistics);
+
+    const result = Object.entries(statistics).map(([brand, values]) => {
+        values.sort((a, b) => a - b);
+        const ranges = [];
+        let start = values[0], prev = values[0];
+
+        for (let i = 1; i < values.length; i++) {
+            if (values[i] !== prev + 10) {
+                ranges.push(`${start}-${prev}`);
+                start = values[i];
+            }
+            prev = values[i];
+        }
+        ranges.push(`${start}-${prev}`);
+
+        return { brand, ranges };
+    });
+
+    // console.log("Final Statistics:", result);
+    return result;
+}
+
+export function exportGoodsToXLSX(categories, goods, feed) {
+    if (goods?.length && categories?.length) {
+
+        // Предварительно создаем карту товаров для быстрого доступа по CATEGORY_ID
+        const goodsMap = goods?.sort((a, b) => a.SORT - b.SORT).reduce((acc, g) => {
+            if (!acc[g.CATEGORY_ID]) acc[g.CATEGORY_ID] = [];
+            acc[g.CATEGORY_ID].push(g);
+            return acc;
+        }, {});
+
+        // Карта товаров по VENDOR для быстрого поиска
+        const goodsFeedMap = (feed || []).reduce((acc, f) => {
+            acc[f.VENDOR] = f;
+            return acc;
+        }, {});
+
+        // Основной экспорт данных
+        const exportData = categories.reduce((acc, c) => {
+            // Заголовок категории
+            acc.push([
+                'Категория',
+                c.ID,
+                c.XML_ID,
+                '',
+                '',
+                c.NAME,
+            ]);
+
+            // Товары внутри категории
+            const goods = (goodsMap[c.ID] || []).map(g => {
+                const goodFeed = feed?.length ? goodsFeedMap[g.VENDOR] : {};
+                return [
+                    'Товар',
+                    g.ID,
+                    g.XML_ID,
+                    g.BRAND,
+                    g.SORT,
+                    g.NAME,
+                    g.PICTURES.filter(p => p).length,
+                    g.PICTURES.map(p => p ? 'https://runtec-shop.ru/' + p : null).join(','),
+                    '', // Стоимость на сайте (возможно, нужно доработать)
+                    '', // Остатки на сайте (возможно, нужно доработать)
+                    goodFeed.picture?.length || 0,
+                    (goodFeed.picture || []).join(','),
+                    goodFeed.price || '',
+                    goodFeed.count || '',
+                ];
+            });
+
+            // Добавляем товары в категорию
+            acc.push(...goods);
+            return acc;
+        }, []);
+
+        // Заголовок таблицы
+        exportData.unshift([
+            'Тип',
+            'ID',
+            'GUID 1C',
+            'Бренд',
+            'Сортировка',
+            'Наименование',
+            'Изображений на сайте',
+            'Изображения',
+            'Стоимость на сайте',
+            'Остатки на сайте',
+            'Изображений в фиде',
+            'Изображения',
+            'Стоимость в фиде',
+            'Остатки в фиде',
+        ]);
+
+        // Создание рабочей книги и добавление листа
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.aoa_to_sheet(exportData);
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Экспорт');
+
+        // Генерация файла и скачивание
+        return (
+            XLSX.writeFile(workbook, 'Сравнение с фидом.xlsx')
+        )
+
+        // console.log('\n exportXLSX', {
+        //     exportData,
+        // });
+    }
+}
+
+export function getCategoryDescendants(selectedCategory, categories) {
+    const descendants = [];
+    const visited = new Set();
+
+    function findChildren(categoryId) {
+        if (visited.has(categoryId)) return; // Избегаем зацикливания
+        visited.add(categoryId);
+
+        const children = categories.filter(category => category.IBLOCK_SECTION_ID === categoryId);
+        // console.log(`Children of ${categoryId}:`, children);
+        children.forEach(child => {
+            descendants.push(child.ID);
+            findChildren(child.ID); // Рекурсивный поиск
+        });
+    }
+
+    // console.log('Selected Category:', selectedCategory);
+    findChildren(selectedCategory);
+    // console.log('Descendants:', descendants);
+    return descendants;
 }

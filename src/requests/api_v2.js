@@ -77,6 +77,18 @@ export const fetchCategoryData = async (token) => {
         };
     }
 };
+// Функция для получения категорий
+export async function fetchCategories(token) {
+    try {
+        const categoriesResponse = await fetchCategoryData(token);
+        return categoriesResponse.success
+            ? categoriesResponse.data.sort((a, b) => a.SORT - b.SORT)
+            : [];
+    } catch (error) {
+        console.error("Ошибка при загрузке категорий:", error);
+        return [];
+    }
+}
 export const fetchGoodsSelfApiData = async (token) => {
     try {
         // URL фида

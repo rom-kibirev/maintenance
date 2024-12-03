@@ -1,29 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Box, Button, Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-
-// Функция для получения всех потомков категории
-function getCategoryDescendants(selectedCategory, categories) {
-    const descendants = [];
-    const visited = new Set();
-
-    function findChildren(categoryId) {
-        if (visited.has(categoryId)) return; // Избегаем зацикливания
-        visited.add(categoryId);
-
-        const children = categories.filter(category => category.IBLOCK_SECTION_ID === categoryId);
-        // console.log(`Children of ${categoryId}:`, children);
-        children.forEach(child => {
-            descendants.push(child.ID);
-            findChildren(child.ID); // Рекурсивный поиск
-        });
-    }
-
-    // console.log('Selected Category:', selectedCategory);
-    findChildren(selectedCategory);
-    // console.log('Descendants:', descendants);
-    return descendants;
-}
+import {getCategoryDescendants} from "../UI/global/sortTools";
 
 // Функция для фильтрации товаров по категориям
 function filterGoodsByCategory(goods, categoryIds) {

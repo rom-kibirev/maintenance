@@ -30,7 +30,7 @@ export const routers = [
         id: 3,
         src: 'https://www.freistellen.de/wp-content/uploads/2022/05/b-2.gif',
         title: 'Работа с товарами',
-        to: '/',
+        to: '/goods-tools',
         options: '',
         trouble: 'Требует дополнение методов получения товаров, а также изменения лимитов',
         worked: 'Работает API получение/отправка настроек категорий',

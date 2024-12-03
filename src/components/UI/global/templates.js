@@ -52,4 +52,4 @@ export const countValue = {
     2: { label: "В наличии", color: "text-lime-600", image: "https://cdn.builder.io/api/v1/image/assets/TEMP/9463bbc4123ce7b3e5dfa64bf63b30f476cb9f2e77903cea30886a06e1cc6905?" }
 };
 
-export const brandList = ["runtec", "garwin", "licota", "металлсервис"];
+export const brandList = ["runtec", "garwin", "garwin ht", "garwin pro", "garwin cnc", "garwin industrial", "licota", "металлсервис"];

@@ -3,8 +3,9 @@ import React, { useState, useMemo, useRef, useLayoutEffect } from "react";
 import BrowserUpdatedOutlinedIcon from "@mui/icons-material/BrowserUpdatedOutlined";
 import PrintGoods from "../Search/PrintGoods";
 import { FixedSizeGrid } from "react-window";
+// import {generateSortStatistics} from "../UI/global/sortTools";
 
-export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed }) {
+export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed, viewmode, isTollsStat }) {
     const [isFeed, setIsFeed] = useState(false);
     const [containerWidth, setContainerWidth] = useState(0);
     const containerRef = useRef(null);
@@ -18,9 +19,9 @@ export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed })
         };
         updateWidth();
         window.addEventListener("resize", updateWidth);
-        console.log('\n updateWidth', updateWidth());
+        // console.log('\n updateWidth', updateWidth());
         return () => window.removeEventListener("resize", updateWidth);
-    }, []);
+    }, [goods]);
 
     // Динамическое количество колонок
     const columnWidth = 300; // Ширина одного товара
@@ -28,15 +29,18 @@ export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed })
 
     // Оптимизация feedMap через мемоизацию
     const feedMap = useMemo(
-        () => new Map(feed.map((f) => [f.VENDOR, f])),
+        () => new Map(feed?.map((f) => [f.VENDOR, f])),
         [feed]
     );
+
+    // const goodsSorted = generateSortStatistics(goods);
+    // console.log('\n goodsSorted', goodsSorted,goods);
 
     // Оптимизация sortedGoods через мемоизацию
     const sortedGoods = useMemo(() => {
         if (!goods || goods.length === 0) return [];
 
-        return goods.map((g) => {
+        return goods.sort((a, b) => a.SORT - b.SORT).map((g) => {
             const feedData = isFeed ? feedMap.get(g.VENDOR) : null;
             const pictures = isFeed
                 ? feedData?.picture
@@ -68,8 +72,8 @@ export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed })
 
     return (
         <Box>
-            <Box className="flex flex-row gap-2 items-center mb-2">
-                {!isAddImgCategory && (
+            {isTollsStat && <Box className="flex flex-row gap-2 items-center mb-2">
+                {(!isAddImgCategory && feed?.length > 0) && (
                     <FormControlLabel
                         control={
                             <Switch
@@ -87,15 +91,15 @@ export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed })
                     disabled
                     value={goods.length}
                 />
-                <Button
+                {!viewmode && <Button
                     color="success"
                     variant="outlined"
                     onClick={exportXLSX}
-                    startIcon={<BrowserUpdatedOutlinedIcon />}
+                    startIcon={<BrowserUpdatedOutlinedIcon/>}
                 >
                     Скачать XLSX
-                </Button>
-            </Box>
+                </Button>}
+            </Box>}
 
             <Box ref={containerRef} sx={{width: "100%", height: "100%" }}>
                 {sortedGoods.length > 0 && (

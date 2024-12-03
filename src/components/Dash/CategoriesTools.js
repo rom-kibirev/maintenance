@@ -3,88 +3,21 @@ import PrintCategories from "./PrintCategories";
 import Header from "../UI/Theme/Header";
 import {Alert, Box} from "@mui/material";
 import * as XLSX from "xlsx";
-import {fetchCategoryData, fetchUserData, patchCategories} from "../../requests/api_v2";
-// import {oldCategories} from "../../data/checkCategories/cat";
+import {fetchCategories, fetchUserData, patchCategories} from "../../requests/api_v2";
 
 export const CategoriesTools = ({token}) => {
 
     const [categoriesData, setCategoriesData] = useState(null);
     const [answer, setAnswer] = useState(null);
-    // const [changedIdList, setChangedIdList] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
 
         const getData = async () => {
 
-            // console.log('\n ', token);
+            const categories = await fetchCategories(token, true);
 
-            const updateCategories = await fetchCategoryData(token);
-            if (updateCategories.success) {
-
-                const checkData = updateCategories.data.sort((a, b) => a.SORT - b.SORT);
-
-                // if (checkData?.length > 0) {
-                //
-                //     const missed = [
-                //         9279,
-                //         9290,
-                //         9291,
-                //         9350,
-                //         9351,
-                //         9352,
-                //         9353,
-                //         9354,
-                //         9355,
-                //         9356,
-                //         9357,
-                //         9358,
-                //         9359,
-                //         9360,
-                //         9361,
-                //         9370,
-                //         9375,
-                //         9377,
-                //         9451,
-                //         9615,
-                //         9620
-                //     ];
-                //
-                //     const withParent = checkData?.map(c => {
-                //
-                //         if (c.ID === 9480) c.IBLOCK_SECTION_ID = 7893;
-                //         if (c.ID === 8310) c.IBLOCK_SECTION_ID = 8241;
-                //         if (c.ID === 8311) c.IBLOCK_SECTION_ID = 8241;
-                //         if (c.ID === 8312) c.IBLOCK_SECTION_ID = 8241;
-                //         if (c.ID === 8313) c.IBLOCK_SECTION_ID = 8241;
-                //         if (c.ID === 9111) c.IBLOCK_SECTION_ID = 9096;
-                //
-                //         if (missed.includes(c.ID)) c.ACTIVE = false;
-                //
-                //         if (c.IBLOCK_SECTION_ID === null) {
-                //             const findOld = oldCategories.find(o => o.guid === c.XML_ID);
-                //             if (findOld?.parent) {
-                //
-                //                 const findData = checkData?.find(d => d.XML_ID === findOld?.parent)
-                //
-                //                 if (findData?.ID) {
-                //
-                //                     c.IBLOCK_SECTION_ID = findData?.ID;
-                //                 }
-                //             }
-                //         }
-                //
-                //         return (c);
-                //     });
-                //
-                //     setCategoriesData(withParent);
-                // }
-
-                setCategoriesData(checkData);
-                setAnswer(null);
-            } else {
-                setAnswer(updateCategories);
-            }
+            setCategoriesData(categories);
 
             const response = await fetchUserData(token);
             if (response.success) setCurrentUser(response.data);
@@ -93,38 +26,10 @@ export const CategoriesTools = ({token}) => {
         getData();
     }, [token]);
 
-    // useEffect(() => {
-    //     const importAllFiles = (requireContext) =>
-    //         requireContext.keys().map(requireContext);
-    //
-    //     // Импортируем все файлы, начинающиеся на 23-03-
-    //     const files = importAllFiles(require.context(
-    //         '../../data/checkCategories', // Относительный путь
-    //         false,
-    //         /23-03-\d+\.json$/
-    //     ));
-    //
-    //     const combinedCategories = files.flat().map(category => ({
-    //         ID: category.guid,
-    //         IBLOCK_SECTION_ID: category.parent,
-    //         NAME: category.name,
-    //         ACTIVE: true
-    //     }));
-    //
-    //     console.log('\n combinedCategories', combinedCategories);
-    //     setCategoriesData(combinedCategories);
-    //
-    //     // setCategories(combinedCategories); // Обновляем состояние с преобразованными данными
-    // }, []);
-    
-    // console.log('\n categoriesData', categoriesData);
-    // if (categoriesData) console.log('\n categoriesData', categoriesData, categoriesData?.find(c => c.NAME === 'Runtec TEST 2'));
-
-    // const changeIdsList = (id) => {
-    //
-    //     const updateChangedIdList = [...changedIdList, id];
-    //     setChangedIdList(updateChangedIdList);
-    // }
+    // console.log('\n CategoriesTools', {
+    //     categoriesData,
+    //     currentUser,
+    // });
 
     const saveXlsxHandler = () => {
         const parents = categoriesData.filter(c => !c.IBLOCK_SECTION_ID);
@@ -237,6 +142,10 @@ export const CategoriesTools = ({token}) => {
                     updatedCategory.ACTIVE = matchingRow.ACTIVE === 'Y';
                 }
 
+                if (matchingRow.IBLOCK_SECTION_ID !== undefined) {
+                    updatedCategory.IBLOCK_SECTION_ID = matchingRow.IBLOCK_SECTION_ID;
+                }
+
                 if (matchingRow.SORT !== undefined) {
                     updatedCategory.SORT = matchingRow.SORT;
                 }
@@ -262,79 +171,6 @@ export const CategoriesTools = ({token}) => {
 
         reader.readAsArrayBuffer(file);
     };
-
-    // const reBuildCategories = (data) => {
-    //     let updatedIds = [];
-    //
-    //     const updateCategoriesData = categoriesData
-    //         .map(c => {
-    //             const inject = data.find(r => r.ID === c.ID); // Находим соответствие по ID в XLS
-    //
-    //             // Если соответствие не найдено, возвращаем категорию как есть
-    //             if (!inject) return c;
-    //
-    //             let hasChanged = false; // Флаг для отслеживания изменений
-    //
-    //             // 1. ACTIVE (xls: Y/N -> json: true/false)
-    //             const newActive = inject.ACTIVE === 'Y' ? true : false;
-    //             if (newActive !== c.ACTIVE) {
-    //                 c.ACTIVE = newActive;
-    //                 hasChanged = true;
-    //             }
-    //
-    //             // 2. SORT (проверяем сортировку)
-    //             if (inject.SORT && inject.SORT !== c.SORT) {
-    //                 c.SORT = inject.SORT;
-    //                 hasChanged = true;
-    //             }
-    //
-    //             // 3. IS_MODIFIED_ON_SITE (устанавливаем true, если изменены NEW_NAME, REMOVE_SECTION_ID, ADD_SECTION_ID)
-    //             let isModifiedOnSite = c.IS_MODIFIED_ON_SITE;
-    //             if (inject.NEW_NAME !== c.NAME || inject.REMOVE_SECTION_ID === 'Y' || (inject.ADD_SECTION_ID && inject.ADD_SECTION_ID !== c.IBLOCK_SECTION_ID)) {
-    //                 isModifiedOnSite = true;
-    //             }
-    //
-    //             if (isModifiedOnSite !== c.IS_MODIFIED_ON_SITE) {
-    //                 c.IS_MODIFIED_ON_SITE = isModifiedOnSite;
-    //                 hasChanged = true;
-    //             }
-    //
-    //             // 4. NEW_NAME (изменение имени)
-    //             if (inject.NEW_NAME && inject.NEW_NAME !== c.NAME) {
-    //                 c.NAME = inject.NEW_NAME;
-    //                 hasChanged = true;
-    //             }
-    //
-    //             // 5. REMOVE_SECTION_ID (если Y, то делаем IBLOCK_SECTION_ID равным null)
-    //             if (inject.REMOVE_SECTION_ID === 'Y' && c.IBLOCK_SECTION_ID !== null) {
-    //                 c.IBLOCK_SECTION_ID = null;
-    //                 hasChanged = true;
-    //             }
-    //
-    //             // 6. ADD_SECTION_ID (если ADD_SECTION_ID присутствует, обновляем)
-    //             if (inject.ADD_SECTION_ID && inject.ADD_SECTION_ID !== c.IBLOCK_SECTION_ID) {
-    //                 c.IBLOCK_SECTION_ID = inject.ADD_SECTION_ID;
-    //                 hasChanged = true;
-    //             }
-    //
-    //             // Если категория изменилась, добавляем её ID в список изменённых
-    //             if (hasChanged) {
-    //                 updatedIds.push(c.ID);
-    //             }
-    //
-    //             return c; // Возвращаем обновлённую категорию
-    //         })
-    //         .sort((a, b) => a.SORT - b.SORT); // Сортируем по полю SORT
-    //
-    //     console.log('\n updateCategoriesData', updateCategoriesData);
-    //
-    //     // Обновляем данные категорий
-    //     setCategoriesData(updateCategoriesData);
-    //
-    //     // Обновляем список изменённых ID, добавляем только уникальные значения
-    //     setChangedIdList(prev => [...new Set([...prev, ...updatedIds])]);
-    // };
-    // Обработчик загрузки и восстановления данных из XLSX
     const restoreXlsxHandler = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -391,49 +227,7 @@ export const CategoriesTools = ({token}) => {
         reader.readAsArrayBuffer(file);
     };
 
-    // console.log('\n changedIdList', changedIdList);
-    // if (categoriesData) console.log('\n ', categoriesData); // ?.find(c => c.ID === 7809)
-    // const setRuntecFirst = () => {
-    //
-    //     const updateCategoriesData = [...categoriesData].map(g => {
-    //
-    //         if (g.ID === 8782) {
-    //             g.SORT = 1;
-    //             changeIdsList(8782);
-    //         }
-    //         return g;
-    //     });
-    //     setCategoriesData(updateCategoriesData)
-    // }
-    // const disableRuntecTest = () => {
-    //
-    //     const updateCategoriesData = [...categoriesData].map(g => {
-    //
-    //         if (g.ID === 7809) {
-    //             g.ACTIVE = false;
-    //
-    //             changeIdsList(7809);
-    //         }
-    //         return g;
-    //     });
-    //     setCategoriesData(updateCategoriesData)
-    // }
-    // const renameRuntecTest = () => {
-    //
-    //     const updateCategoriesData = [...categoriesData].map(g => {
-    //
-    //         if (g.ID === 7810) {
-    //             g.NAME = "Инструмент для металлообработки";
-    //             changeIdsList(7810);
-    //         }
-    //         return g;
-    //     });
-    //     setCategoriesData(updateCategoriesData)
-    // }
-
     const sendChangedCategoriesHandler = async () => {
-
-        // const changedCategories = categoriesData.filter(c => changedIdList.includes(c.ID));
 
         const response = await patchCategories(token, categoriesData);
         if (response?.success) {
@@ -441,7 +235,6 @@ export const CategoriesTools = ({token}) => {
             setAnswer({success: true, message: "Данные успешно обновлены" });
         }
     }
-    console.log('\n currentUser', currentUser);
 
     return (
         <Box>

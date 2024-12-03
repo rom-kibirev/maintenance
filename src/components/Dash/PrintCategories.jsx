@@ -8,6 +8,7 @@ import UnfoldLessOutlinedIcon from '@mui/icons-material/UnfoldLessOutlined';
 import UnfoldMoreOutlinedIcon from '@mui/icons-material/UnfoldMoreOutlined';
 import OpenInBrowserRoundedIcon from '@mui/icons-material/OpenInBrowserRounded';
 import VisuallyHiddenInput from "../UI/Buttons/Button";
+import {editContentUsers} from "../UI/users";
 
 export default function PrintCategories({ data, saveXlsxHandler, uploadXlsxHandler, sendChangedCategoriesHandler, currentUser }) {
 
@@ -18,7 +19,11 @@ export default function PrintCategories({ data, saveXlsxHandler, uploadXlsxHandl
     const [selectedCategoryList, setSelectedCategoryList] = useState([]);
     const [openCategories, setOpenCategories] = useState({});
 
-    // console.log('\n mainCategoryList', mainCategoryList);
+    // console.log('\n PrintCategories', {
+    //     data,
+    //     currentUser,
+    //     mainCategoryList,
+    // });
 
     useEffect(() => {
         const updateCategories = data.filter(c => c.ACTIVE).sort((a, b) => a.SORT - b.SORT);
@@ -184,7 +189,7 @@ export default function PrintCategories({ data, saveXlsxHandler, uploadXlsxHandl
                     Загрузить XLSX
                     <VisuallyHiddenInput type="file" onChange={uploadXlsxHandler} />
                 </Button>
-                {currentUser?.user_id === 23 && <Button
+                {editContentUsers.includes(currentUser?.user_id) && <Button
                     color="error"
                     variant="outlined"
                     onClick={sendChangedCategoriesHandler}

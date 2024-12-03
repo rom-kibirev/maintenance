@@ -6,7 +6,7 @@ import {countValue} from "../UI/global/templates";
 import {getDeclension} from "../UI/global/sortTools";
 
 export default function ProductCard({ product, isFeed }) {
-    const { NAME, CODE, PRICE, PICTURES, VENDOR, BRAND, WAREHOUSE, COUNT } = product;
+    const { NAME, PRICE, PICTURES, VENDOR, BRAND, WAREHOUSE, COUNT, LINK } = product;
 
     const images = PICTURES?.slice(0, 5) || ["/path/to/default-image.jpg"];
 
@@ -16,7 +16,7 @@ export default function ProductCard({ product, isFeed }) {
         <Box className="flex flex-col gap-2">
             {/* Ссылка с каруселью */}
             <a
-                href={`https://runtec-shop.ru/catalog/${CODE}/`}
+                href={`https://runtec-shop.ru/catalog/${LINK}/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block"
