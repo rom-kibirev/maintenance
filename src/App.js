@@ -11,6 +11,7 @@ import {CategoriesTools} from "./components/Dash/CategoriesTools";
 import {GoodsTools} from "./components/Dash/GoodsTools";
 import {FeedGoodsDiff} from "./components/Dash/FeedGoodsDiff";
 import SearchGoods from "./components/Search/SearchGoods";
+import CatalogView from "./components/Out/CatalogView";
 
 ThemeProvider.propTypes = {children: PropTypes.node};
 
@@ -46,6 +47,7 @@ function App() {
                         <Box className={`h-screen relative p-5`}>
                             <Routes>
                                 <Route path="/login" element={<Authorization setCookie={setCookie} />} />
+                                <Route path="/catalog-view" element={<CatalogView />} />
 
                                 <Route path="/" element={<WelcomeUser />}/>
                                 <Route path="/categories-tools" element={<CategoriesTools token={cookies.token} />}/>

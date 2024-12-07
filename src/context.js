@@ -3,6 +3,7 @@ import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import PlumbingRoundedIcon from "@mui/icons-material/PlumbingRounded";
 import SwitchAccessShortcutIcon from '@mui/icons-material/SwitchAccessShortcut';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import React from "react";
 
 export const routers = [
@@ -47,12 +48,21 @@ export const routers = [
         icon: <RssFeedIcon />
     },
     {
-        id: 3,
+        id: 5,
         src: 'https://otvet.imgsmail.ru/download/15345044_ab1eaa969f15365a3b106a30b9f059bd_800.gif',
         title: 'Матрицы товаров',
         to: '/',
         options: '',
         trouble: 'Не описан',
         icon: <SwitchAccessShortcutIcon />
+    },
+    {
+        id: 6,
+        src: 'https://otvet.imgsmail.ru/download/15345044_ab1eaa969f15365a3b106a30b9f059bd_800.gif',
+        title: 'Каталог товаров ТЗ',
+        to: '/catalog-view',
+        options: '',
+        trouble: 'Не описан',
+        icon: <AccountTreeIcon />
     },
 ]

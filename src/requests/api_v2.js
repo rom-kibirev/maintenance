@@ -203,7 +203,13 @@ export const patchCategories = async (token, categories) => {
                 const response = await axios.patch(
                     `${api}/category`,
                     {"data":categories},
-                    headersRequests('post', token)
+                    {
+                        headers: {
+                            'accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
                 );
 
                 return {

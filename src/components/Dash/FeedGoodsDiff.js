@@ -5,7 +5,7 @@ import CategoriesTree from "./CategoriesTree";
 import {Box, FormControlLabel, Switch} from "@mui/material";
 import GoodsList from "./GoodsList";
 import AddCategoryImages from "./AddCategoryImages";
-import {exportGoodsToXLSX, fetchGoodsData} from "../UI/global/sortTools";
+import {fetchGoodsData} from "../UI/global/sortTools";
 
 export const FeedGoodsDiff = ({ token }) => {
     
@@ -50,7 +50,9 @@ export const FeedGoodsDiff = ({ token }) => {
         }
     }, [selectedCategory, goodsBySite]);
 
-    const exportXLSX = exportGoodsToXLSX(goodsBySite, goodsByFeed, categoriesBySite);
+    // const exportXLSX = () => {
+    //     exportGoodsToXLSX(goodsBySite, goodsByFeed, categoriesBySite);
+    // }
 
     const patchCategoryImage = async (img) => {
         try {
@@ -127,7 +129,7 @@ export const FeedGoodsDiff = ({ token }) => {
                                 categories={categoriesBySite}
                                 goods={filteredGoodsBySite}
                                 feed={goodsByFeed}
-                                exportXLSX={exportXLSX}
+                                // exportXLSX={exportXLSX}
                                 isTollsStat
                             />
                         }

@@ -13,15 +13,15 @@ export default function Page(
 
     return (
         <Box
-            m="20px"
-            display="flex"
-            flexDirection="column"
+            className={`h-full flex flex-col`}
         >
             <Header
                 title={label}
                 subtitle={subtitle}
             />
-            {children}
+            <Box className={`grow overflow-y-auto p-5`}>
+                {children}
+            </Box>
         </Box>
     );
 }

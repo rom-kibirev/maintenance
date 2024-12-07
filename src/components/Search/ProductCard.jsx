@@ -5,7 +5,7 @@ import ShoppingCartRoundedIcon from "@mui/icons-material/ShoppingCartRounded";
 import {countValue} from "../UI/global/templates";
 import {getDeclension} from "../UI/global/sortTools";
 
-export default function ProductCard({ product, isFeed }) {
+export default function ProductCard({ product, isFeed, width, autoplay }) {
     const { NAME, PRICE, PICTURES, VENDOR, BRAND, WAREHOUSE, COUNT, LINK } = product;
 
     const images = PICTURES?.slice(0, 5) || ["/path/to/default-image.jpg"];
@@ -13,7 +13,7 @@ export default function ProductCard({ product, isFeed }) {
     const countStatus = (COUNT > 0 && COUNT <= 3) ? 1 : (COUNT > 3) ? 2 : 0;
 
     return (
-        <Box className="flex flex-col gap-2">
+        <Box sx={{width: width || 'auto'}} className="flex flex-col gap-2">
             {/* Ссылка с каруселью */}
             <a
                 href={`https://runtec-shop.ru/catalog/${LINK}/`}
@@ -21,10 +21,10 @@ export default function ProductCard({ product, isFeed }) {
                 rel="noopener noreferrer"
                 className="block"
             >
-                <ImageCarousel pictures={images} altText={NAME} isFeed={isFeed}/>
+                <ImageCarousel pictures={images} altText={NAME} isFeed={isFeed} autoplay={autoplay} />
 
                 <Box className={`text-2xl`}>
-                    {PRICE.toLocaleString()} ₽
+                    {PRICE?.toLocaleString() || "99 990.99"} ₽
                 </Box>
 
                 <Typography

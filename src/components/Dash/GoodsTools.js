@@ -2,22 +2,28 @@ import React, {useEffect, useState} from "react";
 import Page from "../UI/Theme/Page";
 import {fetchUserData} from "../../requests/api_v2";
 import {exportGoodsToXLSX, fetchGoodsData, getCategoryDescendants, sortProductsByBrand} from "../UI/global/sortTools";
-import {Box, Button, FormControlLabel, Switch} from "@mui/material";
+import {Alert, Box, Button, CircularProgress, FormControlLabel, Switch} from "@mui/material";
 import CategoriesTree from "./CategoriesTree";
 import GoodsList from "./GoodsList";
 import BrandStatistics from "./BrandStatistics";
+// import {fetchFeedData, fetchGoodsMainData} from "../../requests/api_main";
 
 export const GoodsTools = ({token}) => {
 
     const [categories, setCategories] = useState(null);
     const [goods, setGoods] = useState(null);
-    const [currentUser, setCurrentUser] = useState(null);
+    const [, setCurrentUser] = useState(null); // currentUser
     const [selectedCategory, setSelectedCategory] = useState(null); //
     const [categoriesIsView, setCategoriesIsView] = useState(true);
     const [isSortGoods, setIsSortGoods] = useState(true);
     const [sortedGoods, setSortedGoods] = useState(null);
 
+    const [loading, setLoading] = useState(null);
+
     useEffect(() => {
+
+        setLoading(null);
+
         const getData = async () => {
             try {
 
@@ -31,8 +37,40 @@ export const GoodsTools = ({token}) => {
 
                 const sorted = sortProductsByBrand(goods);
                 setSortedGoods(sorted);
+
+                // const goodsLimit = 10;
+                // const [feedData, goodsData] = await Promise.all([
+                //     fetchFeedData(),
+                //     fetchGoodsMainData(token, goodsLimit),
+                // ]);
+                // console.log('\n main',
+                //     {
+                //         feedData,
+                //         goodsData
+                //     }
+                // );
+                // setLoading({
+                //     "feedData": {
+                //         "status": "info",
+                //         "message": "Another process is currently running.",
+                //         "data": []
+                //     },
+                //     "goodsData": {
+                //         "status": "info",
+                //         "message": "Another process is currently running.",
+                //         "data": []
+                //     }
+                // });
+
             } catch (error) {
                 console.error('Ошибка при загрузке данных:', error);
+                setLoading({
+                    "error": {
+                        "status": "error",
+                        "message": error.message,
+                        "data": ['error']
+                    }
+                });
             }
         };
 
@@ -68,20 +106,70 @@ export const GoodsTools = ({token}) => {
         refreshData();
     }, [goods, categories, selectedCategory, isSortGoods, token]);
 
+    // const promoCategories = goods?.length && categories?.map((c,i) => {
+    //
+    //     const good = goods?.find(good => good.CATEGORY_ID === good?.ID);
+    //
+    //     return {
+    //         "ID": c.ID,
+    //         "NAME": c.NAME,
+    //         "ACTIVE": c.ACTIVE,
+    //         "GOODS_PREVIEW": good?.ID || c.GOODS_PREVIEW,
+    //         "IBLOCK_SECTION_ID": c.IBLOCK_SECTION_ID,
+    //         "CODE": c.CODE,
+    //         "PREVIEW_PICTURE": c.PREVIEW_PICTURE,
+    //         "SORT": c.SORT,
+    //     }
+    // })
+    // const products = outCategoryList?.map(c => {
+    //
+    //     const good = goods?.find(good => good.ID === c.GOODS_PREVIEW);
+    //
+    //     return {
+    //         "ACTIVE": good?.ACTIVE,
+    //         "BRAND": good?.BRAND,
+    //         "CATEGORY_ID": good?.CATEGORY_ID,
+    //         "CODE": good?.CODE,
+    //         "COUNTRY": good?.COUNTRY,
+    //         "ID": good?.ID,
+    //         "VENDOR": good?.VENDOR,
+    //         "PRICE": good?.PRICE,
+    //         "NAME": good?.NAME,
+    //         "PICTURES": good?.PICTURES,
+    //         "PREVIEW_PICTURE": good?.PREVIEW_PICTURE,
+    //     };
+    // }).filter(g => g.ID);
+
     console.log('\n GoodsTools', {
         // categories,
+        // promoCategories,
         // selectedCategory,
         // goods,
         // sortedGoods,
-        goodsInCategory,
-        currentUser,
+        // goodsInCategory,
+        // currentUser,
     });
+    
+    if (loading) console.log('\n loading', loading);
 
     return (
         <Page
             label="Управление товарами"
             subtitle=""
         >
+            {loading && Object.keys(loading)?.map(key => {
+
+                const answer = loading[key];
+
+                    return (
+                        answer && <Alert key={key} severity={loading[key].status}>
+                            <Box className={`flex gap-3`}>
+                                {!loading[key].data?.length && <CircularProgress color={loading[key].status} size={20}/>}
+                                {loading[key].message}
+                            </Box>
+                        </Alert>
+                    );
+                })}
             <Box className="h-full flex flex-row gap-2">
                 <FormControlLabel
                     control={
@@ -130,7 +218,7 @@ export const GoodsTools = ({token}) => {
                             categories={categories}
                             goods={isSortGoods ? sortedGoods : goodsInCategory}
                             feed={[]}
-                            viewmode={true}
+                            viewmode
                         />
                     </Box>}
                 </Box>
