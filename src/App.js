@@ -12,6 +12,7 @@ import {GoodsTools} from "./components/Dash/GoodsTools";
 import {FeedGoodsDiff} from "./components/Dash/FeedGoodsDiff";
 import SearchGoods from "./components/Search/SearchGoods";
 import CatalogView from "./components/Out/CatalogView";
+import ViewUsers from "./components/Orders/ViewUsers";
 
 ThemeProvider.propTypes = {children: PropTypes.node};
 
@@ -53,6 +54,7 @@ function App() {
                                 <Route path="/goods-tools" element={<GoodsTools token={cookies.token} />}/>
                                 <Route path="/feed-goods-diff" element={<FeedGoodsDiff token={cookies.token} />}/>
                                 <Route path="/search" element={<SearchGoods token={cookies.token} />}/>
+                                <Route path="/orders" element={<ViewUsers token={cookies.token} />}/>
 
                                 <Route path="/catalog-view" element={<CatalogView />} />
                             </Routes>

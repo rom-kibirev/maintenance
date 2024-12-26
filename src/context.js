@@ -4,12 +4,13 @@ import PlumbingRoundedIcon from "@mui/icons-material/PlumbingRounded";
 import SwitchAccessShortcutIcon from '@mui/icons-material/SwitchAccessShortcut';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import React from "react";
 
 export const routers = [
     {
         id: 1,
-        src: 'https://media1.tenor.com/m/8HzxIxtScSsAAAAd/pulp-fiction-movies.gif',
+        src: '',
         title: 'Работа с поиском товаров',
         to: '/search',
         options: 'Атотранслит, Поиск по названию',
@@ -19,7 +20,7 @@ export const routers = [
     },
     {
         id: 2,
-        src: 'https://perevozka24.ru/img/ck_upload/289.img4942.gif',
+        src: '',
         title: 'Работа с категориями',
         to: '/categories-tools',
         options: 'В плане изменение свойств: FILTER_PROPS, IS_MODIFIED_ON_SITE, KEYWORDS, META_DESCRIPTION, TITLE',
@@ -29,7 +30,7 @@ export const routers = [
     },
     {
         id: 3,
-        src: 'https://www.freistellen.de/wp-content/uploads/2022/05/b-2.gif',
+        src: '',
         title: 'Работа с товарами',
         to: '/goods-tools',
         options: '',
@@ -39,7 +40,7 @@ export const routers = [
     },
     {
         id: 4,
-        src: null,
+        src: '',
         title: 'Сравнение по фиду 1С',
         to: '/feed-goods-diff',
         options: '',
@@ -49,7 +50,7 @@ export const routers = [
     },
     {
         id: 5,
-        src: 'https://otvet.imgsmail.ru/download/15345044_ab1eaa969f15365a3b106a30b9f059bd_800.gif',
+        src: '',
         title: 'Матрицы товаров',
         to: '/',
         options: '',
@@ -58,11 +59,20 @@ export const routers = [
     },
     {
         id: 6,
-        src: 'https://otvet.imgsmail.ru/download/15345044_ab1eaa969f15365a3b106a30b9f059bd_800.gif',
+        src: '',
         title: 'Каталог товаров ТЗ',
         to: '/catalog-view',
         options: '',
         trouble: 'Описан в "Обновление UI сайта runtec-shop.ru"',
         icon: <AccountTreeIcon />
+    },
+    {
+        id: 7,
+        src: '',
+        title: 'Просмотр заказов',
+        to: '/orders',
+        options: '',
+        trouble: '',
+        icon: <ShoppingCartIcon />
     },
 ]

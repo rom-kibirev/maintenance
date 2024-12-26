@@ -268,3 +268,55 @@ export const updateGoodsInBatches = async (token, goods) => {
 
     console.log(`Обновление завершено. Всего успешно обновлено товаров: ${updatedCount}`);
 };
+
+// users
+export const fetchUsersData = async (token) => {
+    try {
+
+        const response = await axios.get(
+            `${api}/users?type=full&page=1`,
+            headersRequests('get', token)
+        );
+
+        // console.log('\n response', response);
+        return {
+            success: true,
+            data: response.data.data,
+        };
+
+    } catch (error) {
+        console.error('fetchCategoryData:', error.response ? error.response.data : error.message);
+
+        return {
+            success: false,
+            message: error?.response?.data?.errors?.map((e, i) => `fetchCategoryData - attr: ${e.attr} detail: ${e.detail} code: ${e.code}`)
+        };
+    }
+};
+
+// orders
+export const fetchOrdersData = async (token, ids) => {
+    try {
+
+        const idsStr = ids.join('%2C%20');
+
+        const response = await axios.get(
+            `${api}/orders?type=full&order_ids=${idsStr}&page=1`,
+            headersRequests('get', token)
+        );
+
+        // console.log('\n response', response);
+        return {
+            success: true,
+            data: response.data,
+        };
+
+    } catch (error) {
+        console.error('fetchCategoryData:', error.response ? error.response.data : error.message);
+
+        return {
+            success: false,
+            message: error?.response?.data?.errors?.map((e, i) => `fetchCategoryData - attr: ${e.attr} detail: ${e.detail} code: ${e.code}`)
+        };
+    }
+};
