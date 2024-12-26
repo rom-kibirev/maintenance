@@ -7,7 +7,7 @@ import {fetchCategories, fetchUserData} from "../../requests/api_v2";
 import {patchCategoriesLocal} from "../../requests/local_php";
 import EditCategories from "./EditCategories";
 
-export const CategoriesTools = ({ token }) => {
+export default function CategoriesTools ({ token }) {
     const [categoriesData, setCategoriesData] = useState(null); // Данные категорий
     const [answer, setAnswer] = useState(null); // Уведомления
     // const [progress, setProgress] = useState({ current: 0, total: 0 }); // Прогресс отправки

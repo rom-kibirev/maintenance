@@ -4,9 +4,8 @@ import {Box, Button, IconButton, Typography, useTheme} from "@mui/material";
 import { Link } from "react-router-dom";
 import "react-pro-sidebar/dist/css/styles.css";
 import {ColorModeContext, tokens} from "../../theme";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import {routers} from "../../context";
+import {routers} from "../../routers";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import {useCookies} from "react-cookie";
@@ -154,14 +153,7 @@ const Sidebar = ({handleLogout, token}) => {
                     )}
 
                     <Box paddingLeft={isCollapsed ? undefined : "10%"}>
-                        <Item
-                            title="На главную"
-                            to="/"
-                            icon={<HomeOutlinedIcon />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-                        {routers.map((item, index) => {
+                        {routers(token).map((item, index) => {
 
                             return (
                                 <Item

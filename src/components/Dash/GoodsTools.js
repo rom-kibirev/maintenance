@@ -9,7 +9,7 @@ import BrandStatistics from "./BrandStatistics";
 import {getGoodsStatus} from "../../requests/local_php";
 // import {fetchFeedData, fetchGoodsMainData} from "../../requests/api_main";
 
-export const GoodsTools = ({token}) => {
+export default function GoodsTools ({token}) {
 
     const [categories, setCategories] = useState(null);
     const [goods, setGoods] = useState(null);

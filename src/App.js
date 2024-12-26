@@ -2,17 +2,11 @@ import React, { useEffect, useState } from "react";
 import {Routes, Route, useNavigate} from "react-router-dom";
 import { useCookies } from "react-cookie";
 import {CssBaseline, Box, ThemeProvider} from "@mui/material";
-import WelcomeUser from "./components/Dash/WelcomeUser";
 import Authorization from "./components/Public/Authorization";
 import * as PropTypes from "prop-types";
-import Sidebar from "./scenes/global/Sidebar";
 import { ColorModeContext, useMode } from "./theme";
-import {CategoriesTools} from "./components/Dash/CategoriesTools";
-import {GoodsTools} from "./components/Dash/GoodsTools";
-import {FeedGoodsDiff} from "./components/Dash/FeedGoodsDiff";
-import SearchGoods from "./components/Search/SearchGoods";
-import CatalogView from "./components/Out/CatalogView";
-import ViewUsers from "./components/Orders/ViewUsers";
+import {routers} from "./routers";
+import Sidebar from "./scenes/global/Sidebar";
 
 ThemeProvider.propTypes = {children: PropTypes.node};
 
@@ -49,14 +43,13 @@ function App() {
                             <Routes>
                                 <Route path="/login" element={<Authorization setCookie={setCookie} />} />
 
-                                <Route path="/" element={<WelcomeUser />}/>
-                                <Route path="/categories-tools" element={<CategoriesTools token={cookies.token} />}/>
-                                <Route path="/goods-tools" element={<GoodsTools token={cookies.token} />}/>
-                                <Route path="/feed-goods-diff" element={<FeedGoodsDiff token={cookies.token} />}/>
-                                <Route path="/search" element={<SearchGoods token={cookies.token} />}/>
-                                <Route path="/orders" element={<ViewUsers token={cookies.token} />}/>
-
-                                <Route path="/catalog-view" element={<CatalogView />} />
+                                {routers(cookies.token).map((route, index) => (
+                                    <Route
+                                        key={index}
+                                        path={route.to}
+                                        element={route.component}
+                                    />
+                                ))}
                             </Routes>
                         </Box>
                     </main>

@@ -7,7 +7,7 @@ import GoodsList from "./GoodsList";
 import AddCategoryImages from "./AddCategoryImages";
 import {fetchGoodsData} from "../UI/global/sortTools";
 
-export const FeedGoodsDiff = ({ token }) => {
+export default function FeedGoodsDiff ({ token }) {
     
     const [categoriesBySite, setCategoriesBySite] = useState(null);
     const [goodsBySite, setGoodsBySite] = useState(null);
