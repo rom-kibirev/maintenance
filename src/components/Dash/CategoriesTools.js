@@ -3,33 +3,42 @@ import PrintCategories from "./PrintCategories";
 import Header from "../UI/Theme/Header";
 import {Alert, Box} from "@mui/material";
 import * as XLSX from "xlsx";
-import {fetchCategories, fetchUserData, patchCategories} from "../../requests/api_v2";
+import {fetchCategories, fetchUserData} from "../../requests/api_v2";
+import {patchCategoriesLocal} from "../../requests/local_php";
+import EditCategories from "./EditCategories";
 
-export const CategoriesTools = ({token}) => {
+export const CategoriesTools = ({ token }) => {
+    const [categoriesData, setCategoriesData] = useState(null); // Данные категорий
+    const [answer, setAnswer] = useState(null); // Уведомления
+    // const [progress, setProgress] = useState({ current: 0, total: 0 }); // Прогресс отправки
+    // const [inProgress, setInProgress] = useState(false); // Статус процесса
+    const [isAuth, setIsAuth] = useState(true); // Авторизация
+    const [chosenCategory, setChosenCategory] = useState(null);
 
-    const [categoriesData, setCategoriesData] = useState(null);
-    const [answer, setAnswer] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
 
+    // Получение данных при загрузке компонента
     useEffect(() => {
-
         const getData = async () => {
+            try {
+                const categories = await fetchCategories(token, true);
+                setCategoriesData(categories);
 
-            const categories = await fetchCategories(token, true);
-
-            setCategoriesData(categories);
-
-            const response = await fetchUserData(token);
-            if (response.success) setCurrentUser(response.data);
-        }
+                const userResponse = await fetchUserData(token);
+                if (userResponse.success) {
+                    setIsAuth(true);
+                    if (userResponse.success) setCurrentUser(userResponse.data);
+                } else {
+                    setIsAuth(false);
+                    setAnswer({ severity: "error", message: "Ошибка авторизации" });
+                }
+            } catch (error) {
+                setAnswer({ severity: "error", message: "Ошибка загрузки данных" });
+            }
+        };
 
         getData();
     }, [token]);
-
-    // console.log('\n CategoriesTools', {
-    //     categoriesData,
-    //     currentUser,
-    // });
 
     const saveXlsxHandler = () => {
         const parents = categoriesData.filter(c => !c.IBLOCK_SECTION_ID);
@@ -171,88 +180,102 @@ export const CategoriesTools = ({token}) => {
 
         reader.readAsArrayBuffer(file);
     };
-    const restoreXlsxHandler = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const data = new Uint8Array(event.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-
-            // Преобразуем данные в JSON
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
-            const xlsCategories = jsonData.map(row => {
-                // const name = `${row.NAME || ''} ${row.NAME_1 || ''} ${row.NAME_2 || ''} ${row.NAME_3 || ''} ${row.NAME_4 || ''}`.trim();
-                return {
-                    ID: row.ID,
-                    IBLOCK_SECTION_ID: row.IBLOCK_SECTION_ID || "",
-                    // XML_ID: row.XML_ID,
-                    // XML_PARENT_ID: row.XML_PARENT_ID || "",
-                    // NAME: name,
-                    // ACTIVE: row.ACTIVE === 'Y',
-                    // SORT: row.SORT || 500,
-                    // IS_MODIFIED_ON_SITE: row.IS_MODIFIED_ON_SITE === 'Y'
-                };
-            });
-
-            // Обновляем существующие данные по ID или добавляем новые
-            setCategoriesData(prevData => {
-                // Создаем копию существующих данных, чтобы обновить их
-                const updatedData = prevData ? [...prevData] : [];
-
-                xlsCategories.forEach(newItem => {
-                    const existingIndex = updatedData.findIndex(item => item.ID === newItem.ID);
-
-                    if (existingIndex !== -1) {
-                        // Если ID найден, обновляем существующую запись
-                        updatedData[existingIndex] = {
-                            ...updatedData[existingIndex],
-                            ...newItem, // Обновляем поля данными из нового элемента
-                        };
-                    } else {
-                        // Если ID не найден, добавляем новую запись
-                        updatedData.push(newItem);
-                    }
-                });
-
-                return updatedData;
-            });
-
-            console.log('Обновленные данные:', categoriesData);
-        };
-
-        reader.readAsArrayBuffer(file);
-    };
-
+    // Обработчик отправки данных
     const sendChangedCategoriesHandler = async () => {
-
-        const response = await patchCategories(token, categoriesData);
-        if (response?.success) {
-            console.log('\n response', response.data);
-            setAnswer({success: true, message: "Данные успешно обновлены" });
+        if (!isAuth) {
+            setAnswer({ severity: "error", message: "Пользователь не авторизован" });
+            return;
         }
-    }
+
+        try {
+            setAnswer({ severity: "info", message: "Отправка началась" });
+            // setInProgress(true);
+
+            const response = await patchCategoriesLocal(token, categoriesData, 'category');
+            if (response?.success) {
+                setAnswer({ severity: "success", message: "Данные успешно отправлены" });
+            } else {
+                throw new Error(response?.message || "Ошибка отправки данных");
+            }
+        } catch (error) {
+            setAnswer({ severity: "error", message: error.message });
+            // setInProgress(false);
+        }
+    };
+    // if (chosenCategory) console.log('\n ', chosenCategory);
+    // console.log('ChosenCategory in CategoriesTools:', chosenCategory);
+
+    // Отслеживание прогресса отправки
+    // useEffect(() => {
+    //     if (inProgress) {
+    //         const interval = setInterval(async () => {
+    //             try {
+    //                 const progressData = null //await trackProgress(token);
+    //
+    //                 if (progressData?.status === "success") {
+    //                     setAnswer({ severity: "success", message: "Отправка завершена" });
+    //                     setInProgress(false);
+    //                     clearInterval(interval);
+    //                 } else if (progressData?.status === "in_progress") {
+    //                     setProgress({ current: progressData.current, total: progressData.total });
+    //                 } else if (progressData?.status === "wait token") {
+    //                     setAnswer({ severity: "error", message: "Ожидание токена" });
+    //                     setInProgress(false);
+    //                     clearInterval(interval);
+    //                 } else if (progressData?.status === "timeout") {
+    //                     setAnswer({ severity: "warning", message: "Процесс временно приостановлен" });
+    //                 }
+    //             } catch (error) {
+    //                 setAnswer({ severity: "error", message: "Ошибка отслеживания прогресса" });
+    //                 setInProgress(false);
+    //                 clearInterval(interval);
+    //             }
+    //         }, 500);
+    //
+    //         return () => clearInterval(interval);
+    //     }
+    // }, [inProgress, token]);
 
     return (
         <Box>
             <Header title="Управление категориями" subtitle={"Демонстрация категорий как на сайте"} />
-            {answer && <Box>
-                <Alert severity={answer.success ? "success" : "error"}>
-                    {answer.success ? "Данные успешно обновлены" : answer.message}
-                </Alert>
-            </Box>}
+
+            {/* Уведомления */}
+            {answer && (
+                <Alert severity={answer.severity || "info"}>{answer.message}</Alert>
+            )}
+
+            {/* Прогресс-бар */}
+            {/*{inProgress && (*/}
+            {/*    <Box>*/}
+            {/*        <LinearProgress*/}
+            {/*            variant="determinate"*/}
+            {/*            value={(progress.current / progress.total) * 100}*/}
+            {/*        />*/}
+            {/*        <p>*/}
+            {/*            Отправлено {progress.current} из {progress.total}*/}
+            {/*        </p>*/}
+            {/*    </Box>*/}
+            {/*)}*/}
             {categoriesData?.length > 0 &&
-                <PrintCategories
-                    data={categoriesData}
-                    saveXlsxHandler={saveXlsxHandler}
-                    uploadXlsxHandler={uploadXlsxHandler}
-                    sendChangedCategoriesHandler={sendChangedCategoriesHandler}
-                    restoreXlsxHandler={restoreXlsxHandler}
-                    currentUser={currentUser}
-                />
+                <Box>
+                    {chosenCategory && <EditCategories
+                        token={token}
+                        data={categoriesData}
+                        chosenCategory={chosenCategory}
+                    />}
+
+                    <PrintCategories
+                        data={categoriesData}
+                        saveXlsxHandler={saveXlsxHandler}
+                        uploadXlsxHandler={uploadXlsxHandler}
+                        sendChangedCategoriesHandler={sendChangedCategoriesHandler}
+                        // restoreXlsxHandler={restoreXlsxHandler}
+                        currentUser={currentUser}
+                        setChosenCategory={setChosenCategory}
+                    />
+                </Box>
             }
         </Box>
     )

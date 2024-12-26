@@ -1,4 +1,5 @@
 export const api = 'https://runtec-shop.ru/api/v2';
+export const localAPI = `http://localhost:5001`;
 
 export const headersRequests = (type, token) => {
     const types = {

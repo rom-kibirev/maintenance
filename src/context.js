@@ -62,7 +62,7 @@ export const routers = [
         title: 'Каталог товаров ТЗ',
         to: '/catalog-view',
         options: '',
-        trouble: 'Не описан',
+        trouble: 'Описан в "Обновление UI сайта runtec-shop.ru"',
         icon: <AccountTreeIcon />
     },
 ]

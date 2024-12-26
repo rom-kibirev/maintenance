@@ -7,7 +7,7 @@ import debounce from "lodash.debounce";
 export default function PrintGoods ({filteredGoods, isFeed}) {
 
     const [columns, setColumns] = useState(5);
-    const cardHeight = 390;
+    const cardHeight = 350;
 
     const containerRef = useRef();
     const getRowHeight = (index) => {

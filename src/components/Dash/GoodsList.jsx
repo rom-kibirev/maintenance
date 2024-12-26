@@ -4,8 +4,8 @@ import BrowserUpdatedOutlinedIcon from "@mui/icons-material/BrowserUpdatedOutlin
 import PrintGoods from "../Search/PrintGoods";
 import { FixedSizeGrid } from "react-window";
 
-export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed, viewmode, isTollsStat }) {
-    const [isFeed, setIsFeed] = useState(false); // Переключатель "данные из фида"
+export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed, viewmode, isTollsStat, outsSetIsFeed }) {
+    const [isFeed, setIsFeed] = useState(outsSetIsFeed); // Переключатель "данные из фида"
     const [isExporting, setIsExporting] = useState(false); // Блокировка кнопки экспорта
     const [containerWidth, setContainerWidth] = useState(0); // Для рендеринга сетки
     const containerRef = useRef(null); // Ссылка на контейнер для измерения ширины

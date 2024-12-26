@@ -47,13 +47,14 @@ function App() {
                         <Box className={`h-screen relative p-5`}>
                             <Routes>
                                 <Route path="/login" element={<Authorization setCookie={setCookie} />} />
-                                <Route path="/catalog-view" element={<CatalogView />} />
 
                                 <Route path="/" element={<WelcomeUser />}/>
                                 <Route path="/categories-tools" element={<CategoriesTools token={cookies.token} />}/>
                                 <Route path="/goods-tools" element={<GoodsTools token={cookies.token} />}/>
                                 <Route path="/feed-goods-diff" element={<FeedGoodsDiff token={cookies.token} />}/>
                                 <Route path="/search" element={<SearchGoods token={cookies.token} />}/>
+
+                                <Route path="/catalog-view" element={<CatalogView />} />
                             </Routes>
                         </Box>
                     </main>

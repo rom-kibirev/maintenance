@@ -27,8 +27,14 @@ export default function PrintCategories({
                                             currentUser,
                                             out,
                                             previewProducts,
-                                            feed
+                                            feed,
+                                            setChosenCategory
                                         }) {
+
+    // console.log('\n PrintCategories', {
+    //     currentUser
+    // });
+
     const [categories, setCategories] = useState([]);
     const [isAllOpened, setIsAllOpened] = useState(false);
     const [mainCategoryList, setMainCategoryList] = useState([]);
@@ -107,6 +113,9 @@ export default function PrintCategories({
             ...prevState,
             [ID]: !prevState[ID],
         }));
+
+
+        setChosenCategory(ID);
     };
 
     // Обработчик наведения на категорию
@@ -237,6 +246,13 @@ export default function PrintCategories({
         );
     };
 
+    const selectedHandler = (id) => {
+
+        setSelectedCategory(id);
+
+        setChosenCategory(id);
+    }
+
     return (
         <Box className="flex h-full flex-col gap-2">
             <Box className="flex flex-wrap gap-2">
@@ -304,7 +320,7 @@ export default function PrintCategories({
                                     ? "border-[#ffb61c] bg-white/5 text-[#ffb61c]"
                                     : "bg-transparent text-inherit border-transparent"
                             } rounded-md border-l hover:border-[#ffb61c] hover:text-[#ffb61c] hover:bg-white/5 px-3 py-1.5 transform duration-200 cursor-pointer`}
-                            onClick={() => setSelectedCategory(category.ID)}
+                            onClick={() => selectedHandler(category.ID)}
                         >
                             {category.NAME}
                         </li>

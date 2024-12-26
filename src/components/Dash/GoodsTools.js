@@ -6,6 +6,7 @@ import {Alert, Box, Button, CircularProgress, FormControlLabel, Switch} from "@m
 import CategoriesTree from "./CategoriesTree";
 import GoodsList from "./GoodsList";
 import BrandStatistics from "./BrandStatistics";
+import {getGoodsStatus} from "../../requests/local_php";
 // import {fetchFeedData, fetchGoodsMainData} from "../../requests/api_main";
 
 export const GoodsTools = ({token}) => {
@@ -26,6 +27,9 @@ export const GoodsTools = ({token}) => {
 
         const getData = async () => {
             try {
+
+                const getDataLocal = await getGoodsStatus(token);
+                console.log('\n getDataLocal', getDataLocal);
 
                 const { categories, goods } = await fetchGoodsData(token, true);
                 setCategories(categories);
@@ -140,17 +144,17 @@ export const GoodsTools = ({token}) => {
     //     };
     // }).filter(g => g.ID);
 
-    console.log('\n GoodsTools', {
-        // categories,
-        // promoCategories,
-        // selectedCategory,
-        // goods,
-        // sortedGoods,
-        // goodsInCategory,
-        // currentUser,
-    });
+    // console.log('\n GoodsTools', {
+    //     // categories,
+    //     // promoCategories,
+    //     // selectedCategory,
+    //     goods,
+    //     // sortedGoods,
+    //     // goodsInCategory,
+    //     // currentUser,
+    // });
     
-    if (loading) console.log('\n loading', loading);
+    // if (loading) console.log('\n loading', loading);
 
     return (
         <Page
@@ -170,7 +174,7 @@ export const GoodsTools = ({token}) => {
                         </Alert>
                     );
                 })}
-            <Box className="h-full flex flex-row gap-2">
+            <Box className="flex flex-row gap-2">
                 <FormControlLabel
                     control={
                         <Switch

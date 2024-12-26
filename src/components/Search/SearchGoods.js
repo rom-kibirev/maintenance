@@ -1,125 +1,132 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Alert, Box, CircularProgress, TextField } from "@mui/material";
-import { fetchGoodsData, spellerYandex } from "../UI/global/sortTools";
-import PrintGoods from "./PrintGoods";
-import debounce from "lodash.debounce";
+import {fetchGoodsData, sortProductsByBrand, spellerYandex} from "../UI/global/sortTools";
+import GoodsList from "../Dash/GoodsList";
+
+// Нормализация слова
+const normalizeWord = (word) => {
+    if (typeof word === "string") {
+        const isFraction = /^\d+\/\d+$/.test(word); // Проверка на дробь
+        const isNumber = /^[+-]?(\d+(\.\d+)?|\.\d+)$/.test(word.replace(",", "."));
+        if (isFraction) return word; // Дробь остаётся текстом
+        if (isNumber) return parseFloat(word.replace(",", ".")); // Преобразуем в число
+        return word.trim().toUpperCase(); // Остальные строки в верхний регистр
+    }
+    if (typeof word === "number") return word; // Если это число, возвращаем как есть
+    return null; // Неизвестный тип
+};
+
+// Фильтрация товаров по запросу
+const filterGoods = (goods, searchWords) => {
+    const normalizedSearchWords = searchWords.map(normalizeWord).filter(Boolean);
+    return goods.filter((g) => {
+        const words = g.SEARCHABLE_CONTENT?.replace(/["'():;\t\r\n#+″“№’°±³\\]/g, "")
+            ?.replace(/\s+/g, " ")
+            ?.trim()
+            ?.toUpperCase()
+            ?.split(" ")
+            ?.map(normalizeWord)
+            ?.filter(Boolean);
+        return normalizedSearchWords.every((searchWord) => words?.includes(searchWord));
+    });
+};
 
 export default function SearchGoods({ token }) {
-    // const [setAllGoods] = useState([]); // Все товары  allGoods,
-    const [goods, setGoods] = useState([]); // Отфильтрованные товары по активным условиям
-    const [filteredGoodsByName, setFilteredGoodsByName] = useState(null); // Поиск по имени
-    const [filteredGoodsByVendorCode, setFilteredGoodsByVendorCode] = useState(null); // Поиск по вендор-кодам
-    const [loading, setLoading] = useState(true); // Индикатор загрузки
 
-    const [userInput, setUserInput] = useState(""); // Ввод пользователя
-    const [userSearch, setUserSearch] = useState([]); // Распознанный массив слов
+    const [goods, setGoods] = useState([]);
+    const [feed, setFeed] = useState([]);
+    const [filteredGoods, setFilteredGoods] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [inputValue, setInputValue] = useState("ljvrhfn 3 ntktcrjg");
+    const [searchWords, setSearchWords] = useState([]);
+    const debounceTimer = useRef(null);
 
+    const handleSearchChange = useCallback((value) => {
+        const cleanedValue = value
+            .replace(/["'():;\t\r\n#+″“№’°±³\\]/g, "")
+            .replace(/\s+/g, " ")
+            // .trim()
+        ;
+
+        setInputValue(cleanedValue); // Немедленно обновляем inputValue для пользователя
+
+        if (debounceTimer.current) clearTimeout(debounceTimer.current);
+        debounceTimer.current = setTimeout(async () => {
+            try {
+                const wordsArray = cleanedValue.split(" ");
+                const checked = await spellerYandex(cleanedValue); // Проверка правописания
+
+                const correctedWords = wordsArray.map((word) => {
+                    const isFraction = /^\d+\/\d+$/.test(word);
+                    const isNumber = /^[+-]?(\d+(\.\d+)?|\.\d+)$/.test(word.replace(",", "."));
+                    if (isFraction) return word;
+                    if (isNumber) return parseFloat(word.replace(",", "."));
+                    if (word.length <= 2) return word;
+
+                    const suggestion = checked.find(
+                        (c) => c.pos === cleanedValue.indexOf(word)
+                    );
+                    return suggestion?.s?.[0] || word;
+                });
+
+                setSearchWords(correctedWords); // Обновляем поисковые слова
+                const correctedValue = correctedWords.join(" ");
+                if (correctedValue !== inputValue) {
+                    setInputValue(correctedValue); // Обновляем inputValue, если оно изменилось
+                }
+            } catch (error) {
+                console.error("Error during spelling correction:", error);
+            }
+        }, 750);
+    }, [inputValue]);
+
+    // Загрузка товаров
     useEffect(() => {
-        // Загрузка всех данных
         const loadData = async () => {
             setLoading(true);
-            const { goods } = await fetchGoodsData(token);
-            const filteredGoods = goods.filter(
-                (g) => +g.quantity > 0 && +g.price > 0 // Фильтрация: товары с наличием и ценой
-            );
-            // setAllGoods(goods);
-            setGoods(filteredGoods);
-            setLoading(false);
+            try {
+                const { goods, feed } = await fetchGoodsData(token, false);
+                const validGoods = goods.filter(
+                    (g) => +g.COUNT > 0 && +g.PRICE > 0 // Учитываем только товары с положительным количеством и ценой
+                );
+                const sortedGoods = sortProductsByBrand(validGoods);
+                const sortedProducts = sortedGoods?.map(g => {
+
+                    g.SEARCHABLE_CONTENT = `${g.NAME} ${g.VENDOR}`
+
+                    return {
+                        ...g,
+                    }
+                })
+                setGoods(sortedProducts);
+                setFeed(feed);
+            } catch (error) {
+                console.error("Error loading goods:", error);
+            } finally {
+                setLoading(false);
+            }
         };
 
         loadData();
     }, [token]);
 
-    // Обработка изменения ввода
-    const handleSearchChange = debounce(async (input) => {
-        setUserInput(input);
-
-        const cleanedInput = input
-            .replace(/["'():;\t\r\n#+″“№’°±³\\]/g, "") // Очистка символов
-            .toLowerCase();
-
-        const words = cleanedInput
-            .split(" ")
-            .filter((word) => word.trim().length > 0) // Убираем пустые слова
-            .map((word) => {
-                if (!isNaN(word.replace(",", "."))) {
-                    return parseFloat(word.replace(",", ".")); // Конвертируем числа
-                }
-                return word;
-            })
-            .filter((word) => !isNaN(word) || word.length >= 2); // Убираем короткие слова
-
-        const spellRequest = await spellerYandex(words); // Проверка правописания
-        setUserSearch(spellRequest.length > 0 ? spellRequest : []);
-    }, 500);
-
-    // Фильтрация товаров
+    // Фильтрация товаров при изменении поискового запроса
     useEffect(() => {
-        if (goods.length > 0 && userSearch.length > 0) {
-            const validSearchWords = userSearch
-                .filter((word) => typeof word === "string" && isNaN(word)) // Только строки
-                .map((word) => word.toLowerCase());
-
-            const vendorSearch = [];
-            const nameSearch = validSearchWords.map((word) => {
-                const checkVendor = goods.filter((g) =>
-                    g.vendor_code.toLowerCase().includes(word)
-                );
-                if (!word.includes("/") && checkVendor.length > 0) {
-                    vendorSearch.push(word);
-                    return null;
-                }
-                return word;
-            }).filter((w) => w);
-
-            const selectedGoods = nameSearch.length > 0
-                ? goods.filter((g) =>
-                    nameSearch.every((word) =>
-                        g.name.toLowerCase().includes(word)
-                    )
-                )
-                : [];
-
-            // Фильтрация по числовым параметрам
-            const hasNumberUserSearch = userSearch.some((item) => typeof item === "number");
-            const filterByNumbers = [];
-
-            if (hasNumberUserSearch) {
-                selectedGoods.forEach((g) => {
-                    const cleanedName = g.name.replace(/[\u0028\u0029\u00AB\u00BB]/g, ""); // Убираем спецсимволы
-                    const words = cleanedName.split(" ");
-                    const numbersInName = words
-                        .filter((word) => /^-?\d*\.?\d+$/.test(word.replace(",", ".")))
-                        .map((numStr) => parseFloat(numStr.replace(",", ".")));
-
-                    const numbersInRequest = userSearch.filter((item) => typeof item === "number");
-                    if (
-                        numbersInName.length > 0 &&
-                        numbersInRequest.every((num) => numbersInName.includes(num))
-                    ) {
-                        filterByNumbers.push(g);
-                    }
-                });
-            }
-
-            setFilteredGoodsByName(filterByNumbers.length > 0 ? filterByNumbers : selectedGoods);
-
-            // Фильтрация по вендорным кодам
-            if (vendorSearch.length > 0) {
-                const selectedVendorGoods = goods.filter((g) =>
-                    vendorSearch.every((word) =>
-                        g.vendor_code.toLowerCase().includes(word)
-                    )
-                );
-                setFilteredGoodsByVendorCode(selectedVendorGoods.length > 0 ? selectedVendorGoods : null);
-            } else {
-                setFilteredGoodsByVendorCode(null);
-            }
-        } else {
-            setFilteredGoodsByName(null);
-            setFilteredGoodsByVendorCode(null);
+        if (!searchWords.length) {
+            setFilteredGoods([]);
+            return;
         }
-    }, [goods, userSearch]);
+        const matchingGoods = filterGoods(goods, searchWords);
+        setFilteredGoods(matchingGoods);
+    }, [searchWords, goods]);
+
+    // console.log('\n ', {
+    //     goods,
+    //     filteredGoods,
+    //     loading,
+    //     inputValue,
+    //     searchWords,
+    // });
 
     return (
         <Box>
@@ -129,11 +136,16 @@ export default function SearchGoods({ token }) {
                     variant="outlined"
                     fullWidth
                     onChange={(e) => handleSearchChange(e.target.value)}
-                    value={userInput}
+                    value={inputValue}
                 />
-                <Alert severity="success">
-                    Найдено по имени: {filteredGoodsByName?.length || 0}, по коду: {filteredGoodsByVendorCode?.length || 0}
-                </Alert>
+                {loading ? (
+                    <Box>Search</Box>
+                ) : (
+                    <Alert severity="success">
+                        Всего товаров для поиска {goods?.length || 0}. Найдено:{" "}
+                        {filteredGoods?.length || 0}
+                    </Alert>
+                )}
             </Box>
 
             {loading ? (
@@ -141,10 +153,16 @@ export default function SearchGoods({ token }) {
                     <CircularProgress />
                 </Box>
             ) : (
-                goods?.length > 0 && <PrintGoods
-                    filteredGoodsByName={filteredGoodsByName}
-                    filteredGoodsByVendorCode={filteredGoodsByVendorCode}
-                />
+                filteredGoods?.length > 0 && <Box className="flex-1">
+                        <GoodsList
+                            // selectedCategory={selectedCategory}
+                            // categories={categories}
+                            goods={filteredGoods}
+                            feed={feed}
+                            viewmode
+                            outsSetIsFeed
+                        />
+                    </Box>
             )}
         </Box>
     );
