@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Alert, Box, CircularProgress, TextField } from "@mui/material";
 import {fetchGoodsData, sortProductsByBrand, spellerYandex} from "../UI/global/sortTools";
-import GoodsList from "../Dash/GoodsList";
+import ProductsList from "../Dash/ProductsList";
 
 // Нормализация слова
 const normalizeWord = (word) => {
@@ -31,22 +31,38 @@ const filterGoods = (goods, searchWords) => {
     });
 };
 
+// Фильтрация товаров по запросу
+const filterCategories = (categories, searchWords) => {
+    const normalizedSearchWords = searchWords.map(normalizeWord).filter(Boolean);
+    return categories.filter((g) => {
+        const words = g.SEARCHABLE_CONTENT?.replace(/["'():;\t\r\n#+″“№’°±³\\]/g, "")
+            ?.replace(/\s+/g, " ")
+            ?.trim()
+            ?.toUpperCase()
+            ?.split(" ")
+            ?.map(normalizeWord)
+            ?.filter(Boolean);
+        return normalizedSearchWords.every((searchWord) => words?.includes(searchWord));
+    });
+};
+
 export default function SearchGoods({ token }) {
 
     const [goods, setGoods] = useState([]);
+    const [vendors, setVendors] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [feed, setFeed] = useState([]);
     const [filteredGoods, setFilteredGoods] = useState([]);
+    const [filteredCategories, setFilteredCategories] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [inputValue, setInputValue] = useState("ljvrhfn 3 ntktcrjg");
+    const [inputValue, setInputValue] = useState("RT-IW500 frrevekznjhysq ufqrjdthn");
     const [searchWords, setSearchWords] = useState([]);
     const debounceTimer = useRef(null);
 
     const handleSearchChange = useCallback((value) => {
         const cleanedValue = value
             .replace(/["'():;\t\r\n#+″“№’°±³\\]/g, "")
-            .replace(/\s+/g, " ")
-            // .trim()
-        ;
+            .replace(/\s+/g, " ");
 
         setInputValue(cleanedValue); // Немедленно обновляем inputValue для пользователя
 
@@ -54,15 +70,25 @@ export default function SearchGoods({ token }) {
         debounceTimer.current = setTimeout(async () => {
             try {
                 const wordsArray = cleanedValue.split(" ");
-                const checked = await spellerYandex(cleanedValue); // Проверка правописания
+
+                // Отфильтруем слова для отправки на проверку
+                const wordsToCheck = wordsArray.filter((word) => !vendors.includes(word));
+
+                const checked = await spellerYandex(wordsToCheck.join(" ")); // Проверяем только фильтрованные слова
 
                 const correctedWords = wordsArray.map((word) => {
+                    if (vendors.includes(word.toUpperCase())) {
+                        // Если слово в списке vendors, оставляем как есть
+                        return word;
+                    }
+
                     const isFraction = /^\d+\/\d+$/.test(word);
                     const isNumber = /^[+-]?(\d+(\.\d+)?|\.\d+)$/.test(word.replace(",", "."));
                     if (isFraction) return word;
                     if (isNumber) return parseFloat(word.replace(",", "."));
                     if (word.length <= 2) return word;
 
+                    // Найдем исправление для слова
                     const suggestion = checked.find(
                         (c) => c.pos === cleanedValue.indexOf(word)
                     );
@@ -78,27 +104,34 @@ export default function SearchGoods({ token }) {
                 console.error("Error during spelling correction:", error);
             }
         }, 750);
-    }, [inputValue]);
+    }, [inputValue, vendors]);
 
     // Загрузка товаров
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
             try {
-                const { goods, feed } = await fetchGoodsData(token, false);
+                const { categories, goods, feed } = await fetchGoodsData(token, false);
                 const validGoods = goods.filter(
                     (g) => +g.COUNT > 0 && +g.PRICE > 0 // Учитываем только товары с положительным количеством и ценой
                 );
                 const sortedGoods = sortProductsByBrand(validGoods);
                 const sortedProducts = sortedGoods?.map(g => {
 
-                    g.SEARCHABLE_CONTENT = `${g.NAME} ${g.VENDOR}`
+                    g.SEARCHABLE_CONTENT = `${g.NAME} ${g.VENDOR}`;
+                    g.LINK = categories?.find(c => c.ID === g.CATEGORY_ID).CODE !== 'razdel_ne_opredelen' ?
+                        `${categories?.find(c => c.ID === g.CATEGORY_ID).CODE}/${g.CODE}` :
+                        g.CODE
+                    ;
 
                     return {
                         ...g,
                     }
                 })
+                const filteredCategories = categories.filter(c => c.ACTIVE);
+                setCategories(filteredCategories);
                 setGoods(sortedProducts);
+                setVendors(sortedProducts.map(g => g.VENDOR.toUpperCase()));
                 setFeed(feed);
             } catch (error) {
                 console.error("Error loading goods:", error);
@@ -118,15 +151,30 @@ export default function SearchGoods({ token }) {
         }
         const matchingGoods = filterGoods(goods, searchWords);
         setFilteredGoods(matchingGoods);
-    }, [searchWords, goods]);
 
-    // console.log('\n ', {
-    //     goods,
-    //     filteredGoods,
-    //     loading,
-    //     inputValue,
-    //     searchWords,
-    // });
+        const matchingCategories = filterCategories(categories, searchWords);
+        categories.forEach(c => {
+
+            if ([...new Set(matchingGoods.map(g => g.CATEGORY_ID))].includes(c.ID)) matchingCategories.push(c);
+        })
+        // console.log('\n matchingCategories', matchingCategories);
+        setFilteredCategories(matchingCategories);
+    }, [searchWords, goods, categories]);
+
+    // console.log(
+    //     '\n ',{
+    //         goods,
+    //     vendors,
+    //          filteredGoods,
+    //         loading,
+    //         inputValue,
+    //         searchWords,
+    //         categories,
+    //         filteredCategories,
+    //     },
+    //     '\n filteredGoods', filteredGoods,
+    //     '\n filteredCategories', filteredCategories,
+    // );
 
     return (
         <Box>
@@ -141,10 +189,7 @@ export default function SearchGoods({ token }) {
                 {loading ? (
                     <Box>Search</Box>
                 ) : (
-                    <Alert severity="success">
-                        Всего товаров для поиска {goods?.length || 0}. Найдено:{" "}
-                        {filteredGoods?.length || 0}
-                    </Alert>
+                    <Alert severity="success">Всего товаров для поиска {goods?.length || 0}. Найдено:{" "} {filteredGoods?.length || 0} в {filteredCategories?.length || 0} категориях</Alert>
                 )}
             </Box>
 
@@ -153,16 +198,26 @@ export default function SearchGoods({ token }) {
                     <CircularProgress />
                 </Box>
             ) : (
-                filteredGoods?.length > 0 && <Box className="flex-1">
-                        <GoodsList
-                            // selectedCategory={selectedCategory}
-                            // categories={categories}
+                filteredGoods?.length && <Box className="flex-1 flex flex-row gap-2">
+                    {inputValue?.length > 3 && <Box className={`w-[500px]`}>
+                        <ProductsList
+                            goods={filteredGoods}
+                            feed={feed}
+                            viewmode
+                            outsSetIsFeed
+                            shortMode
+                            categories={filteredCategories}
+                        />
+                    </Box>}
+                    <Box className={`grow ml-4`}>
+                        <ProductsList
                             goods={filteredGoods}
                             feed={feed}
                             viewmode
                             outsSetIsFeed
                         />
                     </Box>
+                </Box>
             )}
         </Box>
     );

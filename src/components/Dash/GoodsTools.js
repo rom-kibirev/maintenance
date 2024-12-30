@@ -4,7 +4,7 @@ import {fetchUserData} from "../../requests/api_v2";
 import {exportGoodsToXLSX, fetchGoodsData, getCategoryDescendants, sortProductsByBrand} from "../UI/global/sortTools";
 import {Alert, Box, Button, CircularProgress, FormControlLabel, Switch} from "@mui/material";
 import CategoriesTree from "./CategoriesTree";
-import GoodsList from "./GoodsList";
+import ProductsList from "./ProductsList";
 import BrandStatistics from "./BrandStatistics";
 import {getGoodsStatus} from "../../requests/local_php";
 // import {fetchFeedData, fetchGoodsMainData} from "../../requests/api_main";
@@ -217,7 +217,7 @@ export default function GoodsTools ({token}) {
                         <BrandStatistics
                             goods={isSortGoods ? sortedGoods : goodsInCategory}
                         />
-                        <GoodsList
+                        <ProductsList
                             selectedCategory={selectedCategory}
                             categories={categories}
                             goods={isSortGoods ? sortedGoods : goodsInCategory}

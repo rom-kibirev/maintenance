@@ -4,7 +4,7 @@ import BrowserUpdatedOutlinedIcon from "@mui/icons-material/BrowserUpdatedOutlin
 import PrintGoods from "../Search/PrintGoods";
 import { FixedSizeGrid } from "react-window";
 
-export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed, viewmode, isTollsStat, outsSetIsFeed }) {
+export default function ProductsList({ goods, exportXLSX, isAddImgCategory, feed, viewmode, isTollsStat, outsSetIsFeed, shortMode, categories }) {
     const [isFeed, setIsFeed] = useState(outsSetIsFeed); // Переключатель "данные из фида"
     const [isExporting, setIsExporting] = useState(false); // Блокировка кнопки экспорта
     const [containerWidth, setContainerWidth] = useState(0); // Для рендеринга сетки
@@ -23,8 +23,10 @@ export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed, v
     }, [goods]);
 
     // Настройки сетки
-    const columnWidth = 300; // Ширина одной колонки
-    const columnCount = Math.max(1, Math.floor(containerWidth / columnWidth)); // Количество колонок
+    const columnWidth = shortMode ? 500: 300; // Ширина одной колонки
+    const columnCount = Math.max(1, Math.floor(shortMode ? 1 : (containerWidth / columnWidth))); // Количество колонок
+
+    // if (shortMode) console.log('\n containerWidth', containerWidth);
 
     // Оптимизация данных фида через useMemo
     const feedMap = useMemo(() => new Map(feed?.map((f) => [f.VENDOR, f])), [feed]);
@@ -33,7 +35,7 @@ export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed, v
     const sortedGoods = useMemo(() => {
         if (!goods || goods.length === 0) return [];
 
-        return goods.sort((a, b) => a.SORT - b.SORT).map((g) => {
+        const findGoods = goods.sort((a, b) => a.SORT - b.SORT).map((g) => {
             const feedData = isFeed ? feedMap.get(g.VENDOR) : null;
 
             return {
@@ -44,7 +46,16 @@ export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed, v
                 PICTURES: isFeed ? feedData?.picture : g.PICTURES,
             };
         });
-    }, [goods, isFeed, feedMap]);
+
+        if (categories) categories.forEach(c => {
+
+            findGoods.unshift({...c, LINK: c.CODE, PICTURES: [c.PREVIEW_PICTURE], category:true});
+        })
+
+        // console.log('\n sortedGoods', findGoods);
+
+        return (findGoods);
+    }, [categories, goods, isFeed, feedMap]);
 
     const rowCount = Math.ceil(sortedGoods.length / columnCount); // Количество строк
 
@@ -68,7 +79,7 @@ export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed, v
 
         return (
             <div style={style}>
-                <PrintGoods filteredGoods={[sortedGoods[index]]} isFeed={isFeed} />
+                <PrintGoods filteredGoods={[sortedGoods[index]]} isFeed={isFeed} shortMode={shortMode} />
             </div>
         );
     };
@@ -112,14 +123,14 @@ export default function GoodsList({ goods, exportXLSX, isAddImgCategory, feed, v
                     )}
                 </Box>
             )}
-            {/* Сетка товаров */}
+            {/* Сетка товаров/категорий */}
             <Box ref={containerRef} sx={{ width: "100%", height: "100%" }}>
                 {sortedGoods.length > 0 && (
                     <FixedSizeGrid
                         height={650} // Высота контейнера
                         width={containerWidth} // Динамическая ширина
                         columnWidth={columnWidth} // Ширина ячейки
-                        rowHeight={400} // Высота ячейки
+                        rowHeight={shortMode ? 80 : 450} // Высота ячейки
                         columnCount={columnCount} // Колонки
                         rowCount={rowCount} // Строки
                     >

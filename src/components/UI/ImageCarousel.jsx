@@ -1,40 +1,40 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {useState, useEffect, useRef, useCallback} from "react";
 import { Box } from "@mui/material";
 
-export default function ImageCarousel({ pictures, altText, isFeed, link, autoplay, interval = 3000 }) {
+export default function ImageCarousel({ pictures, altText, isFeed, link, autoplay, interval = 3000, shortMode, imgSize }) {
     const [imageIndex, setImageIndex] = useState(0);
     const [touchStartX, setTouchStartX] = useState(0);
-    const autoPlayRef = useRef(null); // Для управления автопрокруткой
+    const autoPlayRef = useRef(null);
 
-    // Переключение на предыдущее изображение
+    // Handle previous image
     const handlePrevImage = () => {
         setImageIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : pictures.length - 1));
     };
 
-    // Переключение на следующее изображение
-    const handleNextImage = () => {
+    // Handle next image
+    const handleNextImage = useCallback(() =>  {
         setImageIndex((prevIndex) => (prevIndex < pictures.length - 1 ? prevIndex + 1 : 0));
-    };
+    }, [pictures.length]);
 
-    // Обработчик для перелистывания свайпом
+    // Handle swipe
     const handleTouchStart = (e) => {
         setTouchStartX(e.touches[0].clientX);
-        stopAutoplay(); // Остановка автопрокрутки
+        stopAutoplay();
     };
 
     const handleTouchEnd = (e) => {
         const touchEndX = e.changedTouches[0].clientX;
         if (touchStartX - touchEndX > 50) {
-            handleNextImage(); // Свайп влево
+            handleNextImage();
         } else if (touchEndX - touchStartX > 50) {
-            handlePrevImage(); // Свайп вправо
+            handlePrevImage();
         }
-        startAutoplay(); // Перезапуск автопрокрутки
+        startAutoplay();
     };
 
-    // Ховер — переключение изображения по горизонтали
+    // Hover-based image switch
     const handleMouseMove = (e) => {
-        stopAutoplay(); // Остановка автопрокрутки
+        stopAutoplay();
         if (pictures.length > 1) {
             const rect = e.currentTarget.getBoundingClientRect();
             const position = (e.clientX - rect.left) / rect.width;
@@ -43,28 +43,28 @@ export default function ImageCarousel({ pictures, altText, isFeed, link, autopla
         }
     };
 
-    // Автопрокрутка
-    const startAutoplay = () => {
+    // Autoplay logic
+    const startAutoplay = useCallback(() => {
         if (autoplay && pictures.length > 1) {
             autoPlayRef.current = setInterval(() => {
                 handleNextImage();
             }, interval);
         }
-    };
+    }, [handleNextImage, autoplay, interval, pictures.length]);
 
-    const stopAutoplay = () => {
+    const stopAutoplay = useCallback(() => {
         if (autoPlayRef.current) {
             clearInterval(autoPlayRef.current);
             autoPlayRef.current = null;
         }
-    };
+    }, []);
 
     useEffect(() => {
         startAutoplay();
-        return () => stopAutoplay(); // Очистка таймера при размонтировании
-    }, [autoplay, interval, pictures.length]);
+        return () => stopAutoplay();
+    }, [startAutoplay, stopAutoplay]);
 
-    // Переход по ссылке при клике на изображение
+    // Open image link on click
     const handleImageClick = () => {
         if (link) {
             window.open(link, "_blank");
@@ -73,7 +73,7 @@ export default function ImageCarousel({ pictures, altText, isFeed, link, autopla
 
     return (
         <Box
-            className="relative rounded-md overflow-hidden h-[250px] w-[250px]"
+            className={`relative rounded-md overflow-hidden ${shortMode ? 'h-[70px] w-[70px]' : 'h-[250px] w-[250px]'}`}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             onMouseMove={handleMouseMove}
@@ -82,7 +82,7 @@ export default function ImageCarousel({ pictures, altText, isFeed, link, autopla
         >
             {/* Изображение */}
             <img
-                src={`${!isFeed ? 'https://runtec-shop.ru/' : ""}${pictures[imageIndex] || 'local/templates/runtec/components/bitrix/catalog.section/runtec_v1/images/no_photo.png'}`}
+                src={`${!isFeed ? 'https://runtec-shop.ru/' : ""} ${pictures[imageIndex] || 'https://runtec-shop.ru/local/templates/runtec/components/bitrix/catalog.section/runtec_v1/images/no_photo.png'}`}
                 alt={altText}
                 className="absolute top-0 left-0 w-full h-full object-cover"
             />

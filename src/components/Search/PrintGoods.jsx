@@ -4,10 +4,10 @@ import React, {useEffect, useRef, useState} from "react";
 import {VariableSizeList as List} from "react-window";
 import debounce from "lodash.debounce";
 
-export default function PrintGoods ({filteredGoods, isFeed}) {
+export default function PrintGoods ({filteredGoods, isFeed, shortMode}) {
 
     const [columns, setColumns] = useState(5);
-    const cardHeight = 350;
+    const cardHeight = 400;
 
     const containerRef = useRef();
     const getRowHeight = (index) => {
@@ -59,10 +59,10 @@ export default function PrintGoods ({filteredGoods, isFeed}) {
         // console.log('\n RowRenderer', filteredGoods);
 
         return (
-            <Box style={style} display="grid" gridTemplateColumns={`repeat(${columns}, 1fr)`} gap="20px">
+            <Box style={style} display="grid" gridTemplateColumns={`repeat(${shortMode ? 1 : columns}, 1fr)`} gap="20px">
                 {rowItems?.map((product) => (
-                    <Box key={product.ID} className={`max-w-[250px]`}>
-                        <ProductCard product={product} isFeed={isFeed} />
+                    <Box key={product.ID} className={shortMode ? 'w-full' : `max-w-[250px]`}>
+                        <ProductCard product={product} isFeed={isFeed} shortMode={shortMode} />
                     </Box>
                 ))}
             </Box>

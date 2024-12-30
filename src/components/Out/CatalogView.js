@@ -4,7 +4,7 @@ import Page from "../UI/Theme/Page";
 import PrintCategories from "../Dash/PrintCategories";
 import React, {useEffect, useState} from "react";
 import {Box} from "@mui/material";
-import GoodsList from "../Dash/GoodsList";
+import ProductsList from "../Dash/ProductsList";
 import {fetchGoodsData} from "../UI/global/sortTools";
 import Header from "../UI/Theme/Header";
 
@@ -48,7 +48,7 @@ export default function CatalogView () {
                     title='Карточка товара'
                     subtitle='сокращенный вид'
                 />
-                <GoodsList
+                <ProductsList
                     categories={outCategoryList}
                     goods={outProductList}
                     feed={goodsByFeed}

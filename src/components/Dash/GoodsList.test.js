@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent, screen } from "@testing-library/react";
-import GoodsList from "./GoodsList";
+import ProductsList from "./ProductsList";
 
 describe("GoodsList Component", () => {
     let exportXLSXMock;
@@ -12,7 +12,7 @@ describe("GoodsList Component", () => {
     it("renders correctly with goods data", () => {
         const goods = [{ SORT: 1, VENDOR: "TestVendor", PICTURES: [] }];
         render(
-            <GoodsList
+            <ProductsList
                 goods={goods}
                 exportXLSX={exportXLSXMock}
                 feed={[]}
@@ -27,7 +27,7 @@ describe("GoodsList Component", () => {
     it("calls exportXLSX only once when button is clicked", async () => {
         const goods = [{ SORT: 1, VENDOR: "TestVendor", PICTURES: [] }];
         render(
-            <GoodsList
+            <ProductsList
                 goods={goods}
                 exportXLSX={exportXLSXMock}
                 feed={[]}
@@ -47,7 +47,7 @@ describe("GoodsList Component", () => {
     it("disables button during export", async () => {
         const goods = [{ SORT: 1, VENDOR: "TestVendor", PICTURES: [] }];
         render(
-            <GoodsList
+            <ProductsList
                 goods={goods}
                 exportXLSX={exportXLSXMock}
                 feed={[]}
@@ -72,7 +72,7 @@ describe("GoodsList Component", () => {
     it("toggles feed data switch", () => {
         const goods = [{ SORT: 1, VENDOR: "TestVendor", PICTURES: [] }];
         render(
-            <GoodsList
+            <ProductsList
                 goods={goods}
                 exportXLSX={exportXLSXMock}
                 feed={[{ VENDOR: "TestVendor", picture: ["image.jpg"] }]}

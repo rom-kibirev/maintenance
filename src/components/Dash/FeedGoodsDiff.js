@@ -3,7 +3,7 @@ import Page from "../UI/Theme/Page";
 import {fetchCategoryData, patchCategories} from "../../requests/api_v2";
 import CategoriesTree from "./CategoriesTree";
 import {Box, FormControlLabel, Switch} from "@mui/material";
-import GoodsList from "./GoodsList";
+import ProductsList from "./ProductsList";
 import AddCategoryImages from "./AddCategoryImages";
 import {fetchGoodsData} from "../UI/global/sortTools";
 
@@ -124,7 +124,7 @@ export default function FeedGoodsDiff ({ token }) {
                                 patchCategoryImage={patchCategoryImage}
                             /> :
                             (filteredGoodsBySite?.length > 0 && goodsByFeed?.length > 0) &&
-                            <GoodsList
+                            <ProductsList
                                 selectedCategory={selectedCategory}
                                 categories={categoriesBySite}
                                 goods={filteredGoodsBySite}
