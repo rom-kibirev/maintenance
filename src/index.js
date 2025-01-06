@@ -8,7 +8,7 @@ import {CookiesProvider} from "react-cookie";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
     <React.StrictMode>
-        <BrowserRouter>
+        <BrowserRouter future={{v7_startTransition: true}}>
             <CookiesProvider>
                 <App />
             </CookiesProvider>

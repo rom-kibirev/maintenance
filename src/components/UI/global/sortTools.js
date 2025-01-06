@@ -4,7 +4,7 @@ import {brandList} from "./templates";
 import * as XLSX from 'xlsx';
 
 // Функция для получения товаров
-export async function fetchGoodsData(token, withoutCombine) {
+export async function fetchGoodsData(token) {
     try {
         // Получаем категории
         const categories = await fetchCategories(token);

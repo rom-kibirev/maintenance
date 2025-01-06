@@ -67,14 +67,14 @@ export default function CategoriesTree({ categories, selectedCategory, setSelect
                     fullWidth
                     className="flex items-center justify-start"
                     sx={{ textTransform: "none" }}
-                >
-                    {(category.PREVIEW_PICTURE) ? <Box className={`mr-3 rounded-md overflow-hidden`}>
+                    startIcon={(category.PREVIEW_PICTURE) ? <Box className={`mr-3 rounded-md overflow-hidden`}>
                         <img
                             src={category.PREVIEW_PICTURE}
                             alt={category.NAME}
                             style={{ width: 64, height: 64, objectFit: "cover" }}
                         />
                     </Box> : <span className={`mr-2`}>{level}</span>}
+                >
                     {category.NAME}
                 </Button>
                 {category.children && category.children.length > 0 && (
@@ -125,6 +125,7 @@ export default function CategoriesTree({ categories, selectedCategory, setSelect
                 margin="normal"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{m: 0}}
             />
             <List className={`h-full overflow-y-auto relative max-h-[65vh]`}>
                 {searchTerm.length < 2

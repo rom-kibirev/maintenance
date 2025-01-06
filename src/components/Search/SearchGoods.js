@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Alert, Box, CircularProgress, TextField } from "@mui/material";
-import {fetchGoodsData, mergeFeed, sortProductsByBrand, spellerYandex} from "../UI/global/sortTools";
+import {fetchGoodsData, mergeFeed, spellerYandex} from "../UI/global/sortTools";
 import ProductsList from "../Dash/ProductsList";
 
 // Нормализация слова

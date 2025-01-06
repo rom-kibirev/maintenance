@@ -320,3 +320,53 @@ export const fetchOrdersData = async (token, ids) => {
         };
     }
 };
+
+export async function uploadGoods(token, data) {
+    const apiUrl = `${api}/goods`;
+
+    // Резка массива на чанки
+    const chunkSize = 100;
+    const chunks = [];
+    for (let i = 0; i < data.length; i += chunkSize) {
+        chunks.push(data.slice(i, i + chunkSize));
+    }
+
+    let sentCount = 0; // Счетчик отправленных товаров
+
+    try {
+        for (const chunk of chunks) {
+            // Отправка текущего чанка
+            const response = await axios.patch(
+                apiUrl,
+                { data: chunk }, // Текущий чанк
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                    },
+                }
+            );
+
+            // Проверка статуса ответа
+            if (response.status === 200) {
+                sentCount += chunk.length; // Увеличиваем счетчик отправленных товаров
+            } else {
+                throw new Error(`Ошибка при отправке: ${response.statusText}`);
+            }
+        }
+
+        // Успешное завершение
+        return {
+            severity: "success",
+            message: `Отправлено товаров (${sentCount})`,
+        };
+    } catch (error) {
+        // Обработка ошибок
+        console.error("Ошибка отправки данных:", error.message || error);
+        return {
+            severity: "error",
+            message: `Ошибка отправки данных: ${error.message || error}`,
+        };
+    }
+}

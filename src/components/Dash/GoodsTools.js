@@ -1,192 +1,153 @@
-import React, {useEffect, useState} from "react";
 import Page from "../UI/Theme/Page";
-import {fetchUserData} from "../../requests/api_v2";
-import {
-    exportGoodsToXLSX,
-    fetchGoodsData,
-    getCategoryDescendants,
-    mergeFeed,
-    sortProductsByBrand
-} from "../UI/global/sortTools";
-import {Alert, Box, Button, CircularProgress, FormControlLabel, Switch} from "@mui/material";
+import {Alert, Box, Button, CircularProgress, FormControlLabel, Switch, TextField} from "@mui/material";
+import React, {useEffect, useState} from "react";
 import CategoriesTree from "./CategoriesTree";
-import ProductsList from "./ProductsList";
 import BrandStatistics from "./BrandStatistics";
-import OpenInBrowserRoundedIcon from "@mui/icons-material/OpenInBrowserRounded";
-import {sendPy} from "../../requests/py";
+import BackupTableIcon from '@mui/icons-material/BackupTable';
+// import OpenInBrowserRoundedIcon from "@mui/icons-material/OpenInBrowserRounded";
+import StorageIcon from '@mui/icons-material/Storage';
+import ProductsList from "./ProductsList";
+import {fetchGoodsData, getCategoryDescendants, mergeFeed, sortProductsByBrand} from "../UI/global/sortTools";
+import {fetchUserData, uploadGoods} from "../../requests/api_v2";
 
-export default function GoodsTools ({token}) {
+export default function GoodsTools({token}) {
 
+    const [answer, setAnswer] = useState(null);
     const [categories, setCategories] = useState(null);
     const [goods, setGoods] = useState(null);
-    const [currentUser, setCurrentUser] = useState(null); // currentUser
-    const [selectedCategory, setSelectedCategory] = useState(null); //
-    const [categoriesIsView, setCategoriesIsView] = useState(true);
-    const [isSortGoods, setIsSortGoods] = useState(false);
-    const [sortedGoods, setSortedGoods] = useState(null);
-    const [answer, setAnswer] = useState(null);
-    const [loading, setLoading] = useState(null);
-    const [goodsInCategory, setGoodsInCategory] = useState(null);
+    const [feed, setFeed] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState(8506);
+    const [isFeed, setIsFeed] = useState(true);
+    const [isSorted, setIsSorted] = useState(true);
+    const [inProgress, setInProgress] = useState(false);
 
     useEffect(() => {
 
-        setLoading(null);
-
         const getData = async () => {
+
+            setInProgress(true);
+            setAnswer(null);
+
             try {
 
-                const { categories, goods, feed } = await fetchGoodsData(token, true);
+                const { categories, goods, feed } = await fetchGoodsData(token);
                 setCategories(categories);
                 if (goods?.length && feed?.length) {
-                    setGoods(mergeFeed(goods, feed));
+
+                    const filterGoods = () => {
+
+                        const categoriesId = [selectedCategory, ...getCategoryDescendants(selectedCategory, categories)];
+                        const filtered = goods?.filter(good => categoriesId?.includes(good?.CATEGORY_ID));
+
+                        return filtered;
+                    }
+
+                    const currentGoods = selectedCategory ? filterGoods() : goods;
+                    const feedGoods = isFeed ? mergeFeed(currentGoods, feed) : currentGoods;
+                    const sortedGoods = (feedGoods?.length && isSorted) ? sortProductsByBrand(feedGoods) : feedGoods;
+
+                    setGoods(sortedGoods);
+                    setFeed(feed);
+                    setInProgress(false);
                 }
 
                 const response = await fetchUserData(token);
                 if (response.success) setCurrentUser(response.data);
 
-                const sorted = sortProductsByBrand(goods);
-                setSortedGoods(sorted);
-
             } catch (error) {
                 console.error('Ошибка при загрузке данных:', error);
-                setLoading({
-                    "error": {
-                        "status": "error",
-                        "message": error.message,
-                        "data": ['error']
-                    }
-                });
+                setAnswer({
+                    severity: "error",
+                    message: `Ошибка при загрузке данных: ${error.status}`
+                })
             }
         };
 
         getData();
-    }, [token]);
+    }, [token, isFeed, isSorted, selectedCategory]);
 
-    useEffect(() => {
+    const handleUpload = async () => {
 
-        const refreshData = async () => {
-            if (goods?.length && isSortGoods) {
+        setInProgress(true);
 
-                const categoriesId = [selectedCategory, ...getCategoryDescendants(selectedCategory, categories)];
-                // console.log('\n categoriesId', categoriesId);
-
-                const filteredGoods = goods?.filter(good => categoriesId.includes(good.CATEGORY_ID));
-                // console.log('\n filteredGoods', filteredGoods);
-                if (filteredGoods?.length) {
-                    setGoodsInCategory(filteredGoods);
-                } else {
-                    setGoodsInCategory(goods);
-                }
-
-                const sorted = sortProductsByBrand(filteredGoods, "count");
-                setSortedGoods(sorted);
-            }
-            else {
-                window.location.reload();
-            }
-        }
-
-        refreshData();
-    }, [goods, categories, selectedCategory, isSortGoods, token]);
-
-    const upDateGoods = async () => {
-
-
-        if (!currentUser) {
-            setAnswer({ severity: "error", message: "Пользователь не авторизован" });
-            return;
-        }
-
-        try {
-
-            const sendData = await sendPy(`Bearer ${token}`, sortedGoods, 'goods');
-
-            console.log(`\n sendChangedCategoriesHandler`, sendData);
-        } catch (error)  {
-            setAnswer({ severity: "error", message: error.message });
-        }
-    }
-
-    // console.log(`\n currentUser`, currentUser);
+        const result = await uploadGoods(token, goods);
+        if (result?.severity === "success") setAnswer(result);
+    };
 
     return (
         <Page
             label="Управление товарами"
-            subtitle=""
+            subtitle="Сортировка товаров"
         >
-            {loading && Object.keys(loading)?.map(key => {
-
-                const answer = loading[key];
-
-                    return (
-                        answer && <Alert key={key} severity={loading[key].status}>
-                            <Box className={`flex gap-3`}>
-                                {!loading[key].data?.length && <CircularProgress color={loading[key].status} size={20}/>}
-                                {loading[key].message}
-                            </Box>
-                        </Alert>
-                    );
-                })}
-            {answer && (<Alert severity={answer.severity || "info"}>{answer.message}</Alert>)}
-            <Box className="flex flex-row gap-2">
-                <FormControlLabel
-                    control={
-                        <Switch
-                            checked={categoriesIsView}
-                            color="warning"
-                            onChange={() => setCategoriesIsView(!categoriesIsView)}
-                        />
-                    }
-                    label={`${!categoriesIsView ? "Показать" : "Скрыть"} категории`}
+            <Box className={`flex flex-wrap gap-2 p-1 border border-cyan-700 rounded`}>
+                {inProgress && <CircularProgress color="info" size={20} sx={{marginY: "auto"}} />}
+                {answer && (<Alert severity={answer?.severity || "info"}>{answer?.message || ""}</Alert>)}
+                <TextField
+                    label='Количество товаров'
+                    variant="outlined"
+                    disabled
+                    value={goods?.length || 0}
+                    size="small"
                 />
                 <FormControlLabel
                     control={
                         <Switch
-                            checked={isSortGoods}
-                            color="error"
-                            onChange={() => setIsSortGoods(!isSortGoods)}
+                            checked={isFeed}
+                            color="success"
+                            onChange={() => setIsFeed(!isFeed)}
                         />
                     }
-                    label={`${isSortGoods ? "Отмена" : "Сортировать товары"}`}
+                    label={`Данные ${!isFeed ? "с сайта" : "из фида"}`}
                 />
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={isSorted}
+                            color="secondary"
+                            onChange={() => setIsSorted(!isSorted)}
+                        />
+                    }
+                    label={`Сортировка ${!isSorted ? "с сайта" : "автоматическая"}`}
+                />
+                <Button
+                    variant="outlined"
+                    color="success"
+                    // onClick={() => exportGoodsToXLSX(categories, goodsInCategory)}
+                    size="small"
+                ><BackupTableIcon /></Button>
+                {currentUser?.user_id === 23 && <Button
+                    variant="outlined"
+                    color="warning"
+                    onClick={handleUpload}
+                    size="small"
+                ><StorageIcon/></Button>}
+                {/*{currentUser?.user_id === 23 && <Button*/}
+                {/*    variant="outlined"*/}
+                {/*    color="error"*/}
+                {/*    // onClick={upDateGoods}*/}
+                {/*    size="small"*/}
+                {/*><OpenInBrowserRoundedIcon/></Button>}*/}
             </Box>
-            <Box className="flex flex-row gap-2">
-                {categoriesIsView && <Box className="w-[400px]">
-                    {categories?.length > 0 && (
-                        <CategoriesTree
-                            categories={categories}
-                            selectedCategory={selectedCategory}
-                            setSelectedCategory={setSelectedCategory}
-                            editShow
-                        />
-                    )}
+            <Box className="grow flex flex-row gap-2 pt-3">
+                {categories?.length > 0 && (
+                    <CategoriesTree
+                        categories={categories}
+                        selectedCategory={selectedCategory}
+                        setSelectedCategory={setSelectedCategory}
+                        editShow
+                    />
+                )}
+                {(goods?.length) && <Box className="flex-1">
+                    <BrandStatistics
+                        goods={goods}
+                    />
+                    <ProductsList
+                        goods={goods}
+                        feed={feed || []}
+                    />
                 </Box>}
-                <Box className="flex-1">
-                    {(sortedGoods?.length && goodsInCategory?.length) && <Box>
-                        <Box className={`flex gap-2`}>
-                            <BrandStatistics
-                                goods={isSortGoods ? sortedGoods : goodsInCategory}
-                            />
-                            <Box className={`flex gap-2 flex-col items-center`}>
-                                <Button
-                                    variant="outlined"
-                                    color="success"
-                                    onClick={() => exportGoodsToXLSX(categories, goodsInCategory)}
-                                >Скачать xlsx</Button>
-                                {currentUser?.user_id === 23 && <Button
-                                    variant="outlined"
-                                    color="error"
-                                    startIcon={<OpenInBrowserRoundedIcon/>}
-                                    onClick={upDateGoods}
-                                >Обновить данные</Button>}
-                            </Box>
-                        </Box>
-                        <ProductsList
-                            goods={isSortGoods ? sortedGoods : goodsInCategory}
-                        />
-                    </Box>}
-                </Box>
             </Box>
         </Page>
-    );
+    )
 }

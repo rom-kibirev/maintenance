@@ -21,7 +21,7 @@ export default function BrandStatistics({ goods }) {
                     label={brand.toUpperCase()}
                     variant="outlined"
                     disabled
-                    value={ranges.join(", ")}
+                    value={[...new Set(ranges)].join(", ")}
                     size="small"
                 />
             ))}
