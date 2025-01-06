@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Alert, Box, CircularProgress, TextField } from "@mui/material";
-import {fetchGoodsData, sortProductsByBrand, spellerYandex} from "../UI/global/sortTools";
+import {fetchGoodsData, mergeFeed, sortProductsByBrand, spellerYandex} from "../UI/global/sortTools";
 import ProductsList from "../Dash/ProductsList";
 
 // Нормализация слова
@@ -55,7 +55,7 @@ export default function SearchGoods({ token }) {
     const [filteredGoods, setFilteredGoods] = useState([]);
     const [filteredCategories, setFilteredCategories] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [inputValue, setInputValue] = useState("RT-IW500 frrevekznjhysq ufqrjdthn");
+    const [inputValue, setInputValue] = useState("cdthkj 150vv RT-DT12");
     const [searchWords, setSearchWords] = useState([]);
     const debounceTimer = useRef(null);
 
@@ -112,20 +112,20 @@ export default function SearchGoods({ token }) {
             setLoading(true);
             try {
                 const { categories, goods, feed } = await fetchGoodsData(token, false);
-                const validGoods = goods.filter(
-                    (g) => +g.COUNT > 0 && +g.PRICE > 0 // Учитываем только товары с положительным количеством и ценой
-                );
-                const sortedGoods = sortProductsByBrand(validGoods);
-                const sortedProducts = sortedGoods?.map(g => {
+                const goodsForSearch = (goods?.length && feed?.length) && mergeFeed(goods, feed)
+                    .filter((g) => +g.COUNT > 0 && +g.PRICE > 0);
+                const sortedProducts = goodsForSearch?.map(g => {
 
-                    g.SEARCHABLE_CONTENT = `${g.NAME} ${g.VENDOR}`;
-                    g.LINK = categories?.find(c => c.ID === g.CATEGORY_ID).CODE !== 'razdel_ne_opredelen' ?
+                    const SEARCHABLE_CONTENT = `${g.NAME} ${g.VENDOR}`;
+                    const LINK = categories?.find(c => c.ID === g.CATEGORY_ID).CODE !== 'razdel_ne_opredelen' ?
                         `${categories?.find(c => c.ID === g.CATEGORY_ID).CODE}/${g.CODE}` :
                         g.CODE
                     ;
 
                     return {
                         ...g,
+                        SEARCHABLE_CONTENT,
+                        LINK,
                     }
                 })
                 const filteredCategories = categories.filter(c => c.ACTIVE);
@@ -161,20 +161,20 @@ export default function SearchGoods({ token }) {
         setFilteredCategories(matchingCategories);
     }, [searchWords, goods, categories]);
 
-    // console.log(
-    //     '\n ',{
-    //         goods,
-    //     vendors,
-    //          filteredGoods,
-    //         loading,
-    //         inputValue,
-    //         searchWords,
-    //         categories,
-    //         filteredCategories,
-    //     },
-    //     '\n filteredGoods', filteredGoods,
-    //     '\n filteredCategories', filteredCategories,
-    // );
+    console.log(
+        // '\n ',{
+        //     goods,
+        //     vendors,
+        //     filteredGoods,
+        //     loading,
+        //     inputValue,
+        //     searchWords,
+        //     categories,
+        //     filteredCategories,
+        // },
+        // '\n filteredGoods', filteredGoods,
+        // '\n filteredCategories', filteredCategories,
+    );
 
     return (
         <Box>

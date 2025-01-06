@@ -71,6 +71,9 @@ export default function ImageCarousel({ pictures, altText, isFeed, link, autopla
         }
     };
 
+    const serverImages = 'https://runtec-shop.ru/';
+    const currentUrlImage = (!pictures[imageIndex]?.includes(serverImages) && !pictures[imageIndex]?.includes(`garwin.ru`)) ? `${serverImages}${pictures[imageIndex]}` : pictures[imageIndex];
+
     return (
         <Box
             className={`relative rounded-md overflow-hidden ${shortMode ? 'h-[70px] w-[70px]' : 'h-[250px] w-[250px]'}`}
@@ -82,7 +85,7 @@ export default function ImageCarousel({ pictures, altText, isFeed, link, autopla
         >
             {/* Изображение */}
             <img
-                src={`${!isFeed ? 'https://runtec-shop.ru/' : ""} ${pictures[imageIndex] || 'https://runtec-shop.ru/local/templates/runtec/components/bitrix/catalog.section/runtec_v1/images/no_photo.png'}`}
+                src={`${isFeed ? pictures[imageIndex] : currentUrlImage || 'https://runtec-shop.ru/local/templates/runtec/components/bitrix/catalog.section/runtec_v1/images/no_photo.png'}`}
                 alt={altText}
                 className="absolute top-0 left-0 w-full h-full object-cover"
             />

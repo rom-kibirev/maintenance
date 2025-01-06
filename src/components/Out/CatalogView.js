@@ -49,7 +49,6 @@ export default function CatalogView () {
                     subtitle='сокращенный вид'
                 />
                 <ProductsList
-                    categories={outCategoryList}
                     goods={outProductList}
                     feed={goodsByFeed}
                     isTollsStat

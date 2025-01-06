@@ -22,6 +22,7 @@ export default function BrandStatistics({ goods }) {
                     variant="outlined"
                     disabled
                     value={ranges.join(", ")}
+                    size="small"
                 />
             ))}
         </Box>

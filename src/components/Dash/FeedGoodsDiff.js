@@ -125,12 +125,11 @@ export default function FeedGoodsDiff ({ token }) {
                             /> :
                             (filteredGoodsBySite?.length > 0 && goodsByFeed?.length > 0) &&
                             <ProductsList
-                                selectedCategory={selectedCategory}
-                                categories={categoriesBySite}
                                 goods={filteredGoodsBySite}
                                 feed={goodsByFeed}
-                                // exportXLSX={exportXLSX}
                                 isTollsStat
+                                viewmode
+                                outsSetIsFeed
                             />
                         }
                     </Box>

@@ -8,6 +8,12 @@
 # testing
 /coverage
 
+#fakedata
+/public/data/api_v2/goods
+/api/.idea
+/api/venv
+/api/temp
+
 # production
 /build
 

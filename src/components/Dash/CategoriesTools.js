@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from "react";
 import PrintCategories from "./PrintCategories";
-import Header from "../UI/Theme/Header";
-import {Alert, Box} from "@mui/material";
+import {Alert, Box, Button} from "@mui/material";
 import * as XLSX from "xlsx";
 import {fetchCategories, fetchUserData} from "../../requests/api_v2";
-import {patchCategoriesLocal} from "../../requests/local_php";
 import EditCategories from "./EditCategories";
+import Page from "../UI/Theme/Page";
+import {getStatus, sendPy} from "../../requests/py";
 
 export default function CategoriesTools ({ token }) {
     const [categoriesData, setCategoriesData] = useState(null); // Данные категорий
@@ -17,7 +17,6 @@ export default function CategoriesTools ({ token }) {
 
     const [currentUser, setCurrentUser] = useState(null);
 
-    // Получение данных при загрузке компонента
     useEffect(() => {
         const getData = async () => {
             try {
@@ -181,7 +180,6 @@ export default function CategoriesTools ({ token }) {
         reader.readAsArrayBuffer(file);
     };
 
-    // Обработчик отправки данных
     const sendChangedCategoriesHandler = async () => {
         if (!isAuth) {
             setAnswer({ severity: "error", message: "Пользователь не авторизован" });
@@ -189,75 +187,39 @@ export default function CategoriesTools ({ token }) {
         }
 
         try {
-            setAnswer({ severity: "info", message: "Отправка началась" });
-            // setInProgress(true);
 
-            const response = await patchCategoriesLocal(token, categoriesData, 'category');
-            if (response?.success) {
-                setAnswer({ severity: "success", message: "Данные успешно отправлены" });
-            } else {
-                throw new Error(response?.message || "Ошибка отправки данных");
-            }
-        } catch (error) {
+            const sendData = await sendPy(`Bearer ${token}`, categoriesData, 'category');
+
+            console.log(`\n sendChangedCategoriesHandler`, sendData);
+        } catch (error)  {
             setAnswer({ severity: "error", message: error.message });
-            // setInProgress(false);
         }
     };
-    // if (chosenCategory) console.log('\n ', chosenCategory);
-    // console.log('ChosenCategory in CategoriesTools:', chosenCategory);
 
-    // Отслеживание прогресса отправки
-    // useEffect(() => {
-    //     if (inProgress) {
-    //         const interval = setInterval(async () => {
-    //             try {
-    //                 const progressData = null //await trackProgress(token);
-    //
-    //                 if (progressData?.status === "success") {
-    //                     setAnswer({ severity: "success", message: "Отправка завершена" });
-    //                     setInProgress(false);
-    //                     clearInterval(interval);
-    //                 } else if (progressData?.status === "in_progress") {
-    //                     setProgress({ current: progressData.current, total: progressData.total });
-    //                 } else if (progressData?.status === "wait token") {
-    //                     setAnswer({ severity: "error", message: "Ожидание токена" });
-    //                     setInProgress(false);
-    //                     clearInterval(interval);
-    //                 } else if (progressData?.status === "timeout") {
-    //                     setAnswer({ severity: "warning", message: "Процесс временно приостановлен" });
-    //                 }
-    //             } catch (error) {
-    //                 setAnswer({ severity: "error", message: "Ошибка отслеживания прогресса" });
-    //                 setInProgress(false);
-    //                 clearInterval(interval);
-    //             }
-    //         }, 500);
-    //
-    //         return () => clearInterval(interval);
-    //     }
-    // }, [inProgress, token]);
+    const getSendStatus = async () => {
+
+        const status = await getStatus();
+        console.log(`\n getSendStatus`, status);
+
+        setAnswer({
+            severity: "info",
+            message: (<Box>Отправлено {status.sent * 30} из {status.total * 30}</Box>)
+        });
+    }
 
     return (
-        <Box>
-            <Header title="Управление категориями" subtitle={"Демонстрация категорий как на сайте"} />
-
-            {/* Уведомления */}
-            {answer && (
-                <Alert severity={answer.severity || "info"}>{answer.message}</Alert>
-            )}
-
-            {/* Прогресс-бар */}
-            {/*{inProgress && (*/}
-            {/*    <Box>*/}
-            {/*        <LinearProgress*/}
-            {/*            variant="determinate"*/}
-            {/*            value={(progress.current / progress.total) * 100}*/}
-            {/*        />*/}
-            {/*        <p>*/}
-            {/*            Отправлено {progress.current} из {progress.total}*/}
-            {/*        </p>*/}
-            {/*    </Box>*/}
-            {/*)}*/}
+        <Page
+            label="Управление категориями"
+            subtitle={"Демонстрация категорий как на сайте"}
+        >
+            {answer && (<Alert severity={answer.severity || "info"}>{answer.message}</Alert>)}
+            <Button
+                variant="contained"
+                color="success"
+                onClick={getSendStatus}
+            >
+                Статус
+            </Button>
             {categoriesData?.length > 0 &&
                 <Box>
                     {chosenCategory && <EditCategories
@@ -271,12 +233,11 @@ export default function CategoriesTools ({ token }) {
                         saveXlsxHandler={saveXlsxHandler}
                         uploadXlsxHandler={uploadXlsxHandler}
                         sendChangedCategoriesHandler={sendChangedCategoriesHandler}
-                        // restoreXlsxHandler={restoreXlsxHandler}
                         currentUser={currentUser}
                         setChosenCategory={setChosenCategory}
                     />
                 </Box>
             }
-        </Box>
+        </Page>
     )
 }

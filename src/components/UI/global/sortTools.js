@@ -9,7 +9,7 @@ export async function fetchGoodsData(token, withoutCombine) {
         // Получаем категории
         const categories = await fetchCategories(token);
 
-        const lastFileNumber = 7;
+        const lastFileNumber = 14;
 
         // Загружаем части товаров
         const filePromises = Array.from({ length: lastFileNumber }, (_, i) => {
@@ -38,39 +38,30 @@ export async function fetchGoodsData(token, withoutCombine) {
         });
 
         // Загружаем данные фида
-        const goodsByFeedUpdate = await axios
+        const feed = await axios
             .get(`./data/api_v2/goods/products.json`)
             .then((response) => response.data)
             .catch((error) => {
                 console.log(`Ошибка при загрузке feed data`, error);
                 return [];
-            });
-
-        const feedMap = new Map(goodsByFeedUpdate.map((f) => [f.VENDOR, f]));
+            })
+        ;
 
         // Обрабатываем товары
-        const goods = Array.from(allGoods.values())
+        const goods = [...allGoods.values()]
             .map((g, i) => {
-                const feedData = !withoutCombine && feedMap.get(g.VENDOR);
                 const pictures = g.PICTURES ? [g.PREVIEW_PICTURE, ...g.PICTURES] : [g.PREVIEW_PICTURE];
                 const categoryGoods = categories.find(c => c.ID === g.CATEGORY_ID);
 
                 return {
                     ...g,
-                    COUNT: feedData?.count || null,
-                    WAREHOUSE: feedData?.warehouse?.length || null,
-                    PRICE: feedData?.price || null,
                     PICTURES: pictures,
                     LINK: `${categoryGoods?.CODE}/${g.CODE}`
                 };
             })
-            .sort((a, b) => b.SORT - a.SORT)
         ;
 
-        // Выполняем сортировку
-        // const finalGoods = sortAndUpdateProducts(goods);
-
-        return { categories, goods: goods, feed: goodsByFeedUpdate };
+        return { categories, goods, feed };
     } catch (error) {
         console.error("Ошибка при загрузке данных:", error);
         return { categories: [], goods: [] };
@@ -145,7 +136,9 @@ export const spellerYandex = async (text) => {
     }
 }
 
-export function sortProductsByBrand(products) {
+export function sortProductsByBrand(products, type) {
+    // console.log(`\n `, products, type === "count");
+
     // Преобразуем список брендов в нижний регистр для консистентности
     const brandPriority = brandList.map((brand) => brand.toLowerCase());
 
@@ -155,7 +148,18 @@ export function sortProductsByBrand(products) {
     };
 
     // Создаем копию продуктов для сортировки
-    const sortedProducts = [...products].sort((a, b) => {
+    let sortedProducts = [...products];
+
+    if (type === "count") {
+        // Сортировка по цене от большего к меньшему
+        sortedProducts.sort((a, b) => b.PRICE - a.PRICE);
+
+        // Сортировка по количеству пунктов выдачи от большего к меньшему
+        sortedProducts.sort((a, b) => b.WAREHOUSE - a.WAREHOUSE);
+    }
+
+    // Сортировка по бренду
+    sortedProducts.sort((a, b) => {
         const priorityA = getBrandPriority(a.BRAND);
         const priorityB = getBrandPriority(b.BRAND);
 
@@ -164,7 +168,17 @@ export function sortProductsByBrand(products) {
             return priorityA - priorityB;
         }
 
-        // Если приоритеты одинаковы, сортируем по исходному значению SORT
+        // Если приоритеты одинаковы, сортируем по количеству пунктов выдачи
+        if (a.WAREHOUSE !== b.WAREHOUSE) {
+            return b.WAREHOUSE - a.WAREHOUSE;
+        }
+
+        // Если количество пунктов выдачи одинаковое, сортируем по цене
+        if (a.PRICE !== b.PRICE) {
+            return b.PRICE - a.PRICE;
+        }
+
+        // Если всё остальное одинаково, сортируем по исходному значению SORT
         return a.SORT - b.SORT;
     });
 
@@ -175,10 +189,8 @@ export function sortProductsByBrand(products) {
         sortValue += 10;
     });
 
-    // Лог результата для проверки
-    // console.log("Sorted Products (by brand and SORT):", sortedProducts);
-
-    return sortedProducts;
+    // Удаляем дубликаты
+    return [...new Set(sortedProducts)];
 }
 
 
@@ -329,4 +341,23 @@ export function getCategoryDescendants(selectedCategory, categories) {
     findChildren(selectedCategory);
     // console.log('Descendants:', descendants);
     return descendants;
+}
+
+export const mergeFeed = (goods, feed) => {
+
+    const feedMap = new Map(feed?.map((f) => [f.VENDOR, f]));
+
+    const goodsModificate = goods.map((g) => {
+        const feedData = feedMap?.get(g.VENDOR);
+
+        return {
+            ...g,
+            COUNT: feedData?.count || 0,
+            WAREHOUSE: feedData?.warehouse?.length || 0,
+            PRICE: feedData?.price || 0,
+            PICTURES: feedData?.picture || g.PICTURES,
+        };
+    });
+
+    return goodsModificate
 }

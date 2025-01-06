@@ -14,7 +14,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import CancelIcon from '@mui/icons-material/Cancel';
 
-export default function CategoriesTree({ categories, selectedCategory, setSelectedCategory, isAddCategoryImage }) {
+export default function CategoriesTree({ categories, selectedCategory, setSelectedCategory, editShow }) {
 
     const [isActive, setIsActive] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -97,7 +97,7 @@ export default function CategoriesTree({ categories, selectedCategory, setSelect
 
     return (
         <Box className={`relative h-full`}>
-            <FormControlLabel
+            {!editShow && <FormControlLabel
                 control={
                     <Switch
                         checked={isActive}
@@ -106,7 +106,7 @@ export default function CategoriesTree({ categories, selectedCategory, setSelect
                     />
                 }
                 label={`${isActive ? "Активные" : "Все"} категории`}
-            />
+            />}
 
             {selectedCategory && <Button
                 variant="outlined"

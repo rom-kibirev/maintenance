@@ -1,25 +1,32 @@
 import React, {useEffect, useState} from "react";
 import Page from "../UI/Theme/Page";
 import {fetchUserData} from "../../requests/api_v2";
-import {exportGoodsToXLSX, fetchGoodsData, getCategoryDescendants, sortProductsByBrand} from "../UI/global/sortTools";
+import {
+    exportGoodsToXLSX,
+    fetchGoodsData,
+    getCategoryDescendants,
+    mergeFeed,
+    sortProductsByBrand
+} from "../UI/global/sortTools";
 import {Alert, Box, Button, CircularProgress, FormControlLabel, Switch} from "@mui/material";
 import CategoriesTree from "./CategoriesTree";
 import ProductsList from "./ProductsList";
 import BrandStatistics from "./BrandStatistics";
-import {getGoodsStatus} from "../../requests/local_php";
-// import {fetchFeedData, fetchGoodsMainData} from "../../requests/api_main";
+import OpenInBrowserRoundedIcon from "@mui/icons-material/OpenInBrowserRounded";
+import {sendPy} from "../../requests/py";
 
 export default function GoodsTools ({token}) {
 
     const [categories, setCategories] = useState(null);
     const [goods, setGoods] = useState(null);
-    const [, setCurrentUser] = useState(null); // currentUser
+    const [currentUser, setCurrentUser] = useState(null); // currentUser
     const [selectedCategory, setSelectedCategory] = useState(null); //
     const [categoriesIsView, setCategoriesIsView] = useState(true);
-    const [isSortGoods, setIsSortGoods] = useState(true);
+    const [isSortGoods, setIsSortGoods] = useState(false);
     const [sortedGoods, setSortedGoods] = useState(null);
-
+    const [answer, setAnswer] = useState(null);
     const [loading, setLoading] = useState(null);
+    const [goodsInCategory, setGoodsInCategory] = useState(null);
 
     useEffect(() => {
 
@@ -28,43 +35,17 @@ export default function GoodsTools ({token}) {
         const getData = async () => {
             try {
 
-                const getDataLocal = await getGoodsStatus(token);
-                console.log('\n getDataLocal', getDataLocal);
-
-                const { categories, goods } = await fetchGoodsData(token, true);
+                const { categories, goods, feed } = await fetchGoodsData(token, true);
                 setCategories(categories);
-                setGoods(goods);
+                if (goods?.length && feed?.length) {
+                    setGoods(mergeFeed(goods, feed));
+                }
 
                 const response = await fetchUserData(token);
                 if (response.success) setCurrentUser(response.data);
 
-
                 const sorted = sortProductsByBrand(goods);
                 setSortedGoods(sorted);
-
-                // const goodsLimit = 10;
-                // const [feedData, goodsData] = await Promise.all([
-                //     fetchFeedData(),
-                //     fetchGoodsMainData(token, goodsLimit),
-                // ]);
-                // console.log('\n main',
-                //     {
-                //         feedData,
-                //         goodsData
-                //     }
-                // );
-                // setLoading({
-                //     "feedData": {
-                //         "status": "info",
-                //         "message": "Another process is currently running.",
-                //         "data": []
-                //     },
-                //     "goodsData": {
-                //         "status": "info",
-                //         "message": "Another process is currently running.",
-                //         "data": []
-                //     }
-                // });
 
             } catch (error) {
                 console.error('Ошибка при загрузке данных:', error);
@@ -81,12 +62,10 @@ export default function GoodsTools ({token}) {
         getData();
     }, [token]);
 
-    const [goodsInCategory, setGoodsInCategory] = useState(null);
-
     useEffect(() => {
 
         const refreshData = async () => {
-            if (goods?.length) {
+            if (goods?.length && isSortGoods) {
 
                 const categoriesId = [selectedCategory, ...getCategoryDescendants(selectedCategory, categories)];
                 // console.log('\n categoriesId', categoriesId);
@@ -95,66 +74,40 @@ export default function GoodsTools ({token}) {
                 // console.log('\n filteredGoods', filteredGoods);
                 if (filteredGoods?.length) {
                     setGoodsInCategory(filteredGoods);
-
-                    const sorted = sortProductsByBrand(filteredGoods);
-                    setSortedGoods(sorted);
                 } else {
                     setGoodsInCategory(goods);
-
-                    const sorted = sortProductsByBrand(goods);
-                    setSortedGoods(sorted);
                 }
+
+                const sorted = sortProductsByBrand(filteredGoods, "count");
+                setSortedGoods(sorted);
+            }
+            else {
+                window.location.reload();
             }
         }
 
         refreshData();
     }, [goods, categories, selectedCategory, isSortGoods, token]);
 
-    // const promoCategories = goods?.length && categories?.map((c,i) => {
-    //
-    //     const good = goods?.find(good => good.CATEGORY_ID === good?.ID);
-    //
-    //     return {
-    //         "ID": c.ID,
-    //         "NAME": c.NAME,
-    //         "ACTIVE": c.ACTIVE,
-    //         "GOODS_PREVIEW": good?.ID || c.GOODS_PREVIEW,
-    //         "IBLOCK_SECTION_ID": c.IBLOCK_SECTION_ID,
-    //         "CODE": c.CODE,
-    //         "PREVIEW_PICTURE": c.PREVIEW_PICTURE,
-    //         "SORT": c.SORT,
-    //     }
-    // })
-    // const products = outCategoryList?.map(c => {
-    //
-    //     const good = goods?.find(good => good.ID === c.GOODS_PREVIEW);
-    //
-    //     return {
-    //         "ACTIVE": good?.ACTIVE,
-    //         "BRAND": good?.BRAND,
-    //         "CATEGORY_ID": good?.CATEGORY_ID,
-    //         "CODE": good?.CODE,
-    //         "COUNTRY": good?.COUNTRY,
-    //         "ID": good?.ID,
-    //         "VENDOR": good?.VENDOR,
-    //         "PRICE": good?.PRICE,
-    //         "NAME": good?.NAME,
-    //         "PICTURES": good?.PICTURES,
-    //         "PREVIEW_PICTURE": good?.PREVIEW_PICTURE,
-    //     };
-    // }).filter(g => g.ID);
+    const upDateGoods = async () => {
 
-    // console.log('\n GoodsTools', {
-    //     // categories,
-    //     // promoCategories,
-    //     // selectedCategory,
-    //     goods,
-    //     // sortedGoods,
-    //     // goodsInCategory,
-    //     // currentUser,
-    // });
-    
-    // if (loading) console.log('\n loading', loading);
+
+        if (!currentUser) {
+            setAnswer({ severity: "error", message: "Пользователь не авторизован" });
+            return;
+        }
+
+        try {
+
+            const sendData = await sendPy(`Bearer ${token}`, sortedGoods, 'goods');
+
+            console.log(`\n sendChangedCategoriesHandler`, sendData);
+        } catch (error)  {
+            setAnswer({ severity: "error", message: error.message });
+        }
+    }
+
+    // console.log(`\n currentUser`, currentUser);
 
     return (
         <Page
@@ -174,6 +127,7 @@ export default function GoodsTools ({token}) {
                         </Alert>
                     );
                 })}
+            {answer && (<Alert severity={answer.severity || "info"}>{answer.message}</Alert>)}
             <Box className="flex flex-row gap-2">
                 <FormControlLabel
                     control={
@@ -196,33 +150,39 @@ export default function GoodsTools ({token}) {
                     label={`${isSortGoods ? "Отмена" : "Сортировать товары"}`}
                 />
             </Box>
-            <Box className="h-full flex flex-row gap-2">
-                {categoriesIsView && <Box className="w-[400px] h-full">
+            <Box className="flex flex-row gap-2">
+                {categoriesIsView && <Box className="w-[400px]">
                     {categories?.length > 0 && (
                         <CategoriesTree
                             categories={categories}
                             selectedCategory={selectedCategory}
                             setSelectedCategory={setSelectedCategory}
+                            editShow
                         />
                     )}
                 </Box>}
                 <Box className="flex-1">
                     {(sortedGoods?.length && goodsInCategory?.length) && <Box>
-                        <Button
-                            variant="outlined"
-                            sx={{mb:2}}
-                            color="success"
-                            onClick={() => exportGoodsToXLSX(categories, goodsInCategory)}
-                        >Скачать xlsx</Button>
-                        <BrandStatistics
-                            goods={isSortGoods ? sortedGoods : goodsInCategory}
-                        />
+                        <Box className={`flex gap-2`}>
+                            <BrandStatistics
+                                goods={isSortGoods ? sortedGoods : goodsInCategory}
+                            />
+                            <Box className={`flex gap-2 flex-col items-center`}>
+                                <Button
+                                    variant="outlined"
+                                    color="success"
+                                    onClick={() => exportGoodsToXLSX(categories, goodsInCategory)}
+                                >Скачать xlsx</Button>
+                                {currentUser?.user_id === 23 && <Button
+                                    variant="outlined"
+                                    color="error"
+                                    startIcon={<OpenInBrowserRoundedIcon/>}
+                                    onClick={upDateGoods}
+                                >Обновить данные</Button>}
+                            </Box>
+                        </Box>
                         <ProductsList
-                            selectedCategory={selectedCategory}
-                            categories={categories}
                             goods={isSortGoods ? sortedGoods : goodsInCategory}
-                            feed={[]}
-                            viewmode
                         />
                     </Box>}
                 </Box>

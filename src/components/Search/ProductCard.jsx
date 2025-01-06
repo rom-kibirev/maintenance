@@ -11,11 +11,9 @@ export default function ProductCard({ product, isFeed, width, autoplay, shortMod
 
     const { NAME, PRICE, PICTURES, VENDOR, BRAND, WAREHOUSE, COUNT, LINK } = product;
 
-    const images = PICTURES?.slice(0, shortMode ? 2 : 5) || ["/path/to/default-image.jpg"];
+    const images = PICTURES?.slice(0, shortMode ? 2 : 5) || [null];
 
     const countStatus = (COUNT > 0 && COUNT <= 3) ? 1 : (COUNT > 3) ? 2 : 0;
-
-    // console.log('\n product', product.CATEGORY_ID);
 
     return (
         shortMode ?
@@ -89,7 +87,7 @@ export default function ProductCard({ product, isFeed, width, autoplay, shortMod
                     <ImageCarousel pictures={images} altText={NAME} isFeed={isFeed} autoplay={autoplay} />
 
                     <Box className={`text-3xl`}>
-                        {PRICE?.toLocaleString() || "99 990.99"} ₽
+                        {PRICE?.toLocaleString() || "0.00"} ₽
                     </Box>
 
                     <Box
