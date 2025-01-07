@@ -8,23 +8,14 @@ import {
     ListItemText,
     Collapse
 } from "@mui/material";
-import BrowserUpdatedOutlinedIcon from '@mui/icons-material/BrowserUpdatedOutlined';
-import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import UnfoldLessOutlinedIcon from '@mui/icons-material/UnfoldLessOutlined';
 import UnfoldMoreOutlinedIcon from '@mui/icons-material/UnfoldMoreOutlined';
-import OpenInBrowserRoundedIcon from '@mui/icons-material/OpenInBrowserRounded';
-import VisuallyHiddenInput from "../UI/Buttons/Button";
-import { editContentUsers } from "../UI/users";
 import ProductCard from "../Search/ProductCard";
 
 export default function PrintCategories({
                                             data,
-                                            saveXlsxHandler,
-                                            uploadXlsxHandler,
-                                            sendChangedCategoriesHandler,
-                                            currentUser,
                                             out,
                                             previewProducts,
                                             feed,
@@ -35,7 +26,6 @@ export default function PrintCategories({
     //     currentUser
     // });
 
-    const [categories, setCategories] = useState([]);
     const [isAllOpened, setIsAllOpened] = useState(false);
     const [mainCategoryList, setMainCategoryList] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -62,42 +52,36 @@ export default function PrintCategories({
     });
     // if (hoveredProduct) console.log('\n hoveredProduct', hoveredProduct);
 
-    // Инициализация и сортировка категорий
-    useEffect(() => {
-        const updateCategories = data.filter(c => c.ACTIVE).sort((a, b) => a.SORT - b.SORT);
-        setCategories(updateCategories);
-    }, [data]);
-
     // Обновление списка главных категорий
     useEffect(() => {
-        if (categories.length > 0) {
-            const rootCategories = categories.filter(item => !item.IBLOCK_SECTION_ID);
+        if (data.length > 0) {
+            const rootCategories = data.filter(item => !item.IBLOCK_SECTION_ID);
             setMainCategoryList(rootCategories);
 
             if (!selectedCategory) setSelectedCategory(rootCategories[0]?.ID);
         }
-    }, [categories, selectedCategory]);
+    }, [data, selectedCategory]);
 
     // Обновление списка подкатегорий для выбранной категории
     useEffect(() => {
         if (selectedCategory) {
-            const selectedList = categories.filter(c => c.IBLOCK_SECTION_ID === selectedCategory);
+            const selectedList = data.filter(c => c.IBLOCK_SECTION_ID === selectedCategory);
             setSelectedCategoryList(selectedList);
         }
-    }, [selectedCategory, categories]);
+    }, [selectedCategory, data]);
 
     // Состояние открытия/закрытия категорий
     useEffect(() => {
         const newOpenCategories = {};
         const toggleOpenState = (categoryId) => {
-            const subCategories = categories.filter(c => c.IBLOCK_SECTION_ID === categoryId);
+            const subCategories = data.filter(c => c.IBLOCK_SECTION_ID === categoryId);
             subCategories.forEach(sub => {
                 newOpenCategories[sub.ID] = isAllOpened;
                 toggleOpenState(sub.ID);
             });
         };
 
-        categories
+        data
             .filter(category => !category.IBLOCK_SECTION_ID)
             .forEach(rootCategory => {
                 newOpenCategories[rootCategory.ID] = isAllOpened;
@@ -105,7 +89,7 @@ export default function PrintCategories({
             });
 
         setOpenCategories(newOpenCategories);
-    }, [isAllOpened, categories]);
+    }, [isAllOpened, data]);
 
     // Обработчик клика по категории
     const handleCategoryClick = (ID) => {
@@ -125,11 +109,11 @@ export default function PrintCategories({
         // Рекурсивная функция для сбора всех GOODS_PREVIEW текущей категории и ее дочерних элементов
         const collectGoodsPreview = (parentId) => {
             const collectedGoods = [];
-            const subCategories = categories.filter(c => c.IBLOCK_SECTION_ID === parentId);
+            const subCategories = data.filter(c => c.IBLOCK_SECTION_ID === parentId);
 
             // Добавляем GOODS_PREVIEW текущей категории, если он есть
             if (parentId !== null) {
-                const currentCategory = categories.find(c => c.ID === parentId);
+                const currentCategory = data.find(c => c.ID === parentId);
                 if (currentCategory?.GOODS_PREVIEW) {
                     collectedGoods.push(currentCategory.GOODS_PREVIEW);
                 }
@@ -170,7 +154,7 @@ export default function PrintCategories({
 
     // Рекурсивный рендеринг подкатегорий
     const renderSubCategories = (parentId, depth = 0) => {
-        const subCategories = categories.filter(category => category.IBLOCK_SECTION_ID === parentId);
+        const subCategories = data.filter(category => category.IBLOCK_SECTION_ID === parentId);
 
         return (
             <List component="div" disablePadding>
@@ -184,7 +168,7 @@ export default function PrintCategories({
                             sx={{ pl: depth * 2 + 3 }}
                         >
                             <ListItemText primary={category.NAME} />
-                            {categories.some(c => c.IBLOCK_SECTION_ID === category.ID) && (
+                            {data.some(c => c.IBLOCK_SECTION_ID === category.ID) && (
                                 openCategories[category.ID] ? <ExpandLess /> : <ExpandMore />
                             )}
                         </ListItem>
@@ -260,13 +244,13 @@ export default function PrintCategories({
                     disabled
                     id="categories_count"
                     label="Количество категорий"
-                    value={categories.length || ''}
+                    value={data.length || ''}
                 />
                 <TextField
                     disabled
                     id="selected_category"
                     label="Выбранная категория"
-                    value={categories.find(c => c.ID === selectedCategory)?.NAME || ''}
+                    value={data.find(c => c.ID === selectedCategory)?.NAME || ''}
                 />
                 <TextField
                     disabled
@@ -283,31 +267,6 @@ export default function PrintCategories({
                     >
                         {isAllOpened ? "Свернуть" : "Развернуть"} категории
                     </Button>
-                    <Button
-                        color="success"
-                        variant="outlined"
-                        onClick={saveXlsxHandler}
-                        startIcon={<BrowserUpdatedOutlinedIcon />}
-                    >
-                        Скачать XLSX
-                    </Button>
-                    <Button
-                        component="label"
-                        color="warning"
-                        variant="outlined"
-                        startIcon={<UploadFileOutlinedIcon />}
-                    >
-                        Загрузить XLSX
-                        <VisuallyHiddenInput type="file" onChange={uploadXlsxHandler} />
-                    </Button>
-                    {editContentUsers.includes(currentUser?.user_id) && <Button
-                        color="error"
-                        variant="outlined"
-                        onClick={sendChangedCategoriesHandler}
-                        startIcon={<OpenInBrowserRoundedIcon />}
-                    >
-                        Отправить данные на сайт
-                    </Button>}
                 </React.Fragment>}
             </Box>
             <Box className="h-[550px] flex flex-row gap-3 text-[#f1f1ef] text-[15px] bg-[#212529] p-1">

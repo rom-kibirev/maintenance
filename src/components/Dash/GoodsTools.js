@@ -4,11 +4,11 @@ import React, {useEffect, useState} from "react";
 import CategoriesTree from "./CategoriesTree";
 import BrandStatistics from "./BrandStatistics";
 import BackupTableIcon from '@mui/icons-material/BackupTable';
-// import OpenInBrowserRoundedIcon from "@mui/icons-material/OpenInBrowserRounded";
-import StorageIcon from '@mui/icons-material/Storage';
+import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import ProductsList from "./ProductsList";
 import {fetchGoodsData, getCategoryDescendants, mergeFeed, sortProductsByBrand} from "../UI/global/sortTools";
 import {fetchUserData, uploadGoods} from "../../requests/api_v2";
+import {checkAccess} from "../UI/global/userStatus";
 
 export default function GoodsTools({token}) {
 
@@ -17,9 +17,9 @@ export default function GoodsTools({token}) {
     const [goods, setGoods] = useState(null);
     const [feed, setFeed] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
-    const [selectedCategory, setSelectedCategory] = useState(8506);
+    const [selectedCategory, setSelectedCategory] = useState(8165);
     const [isFeed, setIsFeed] = useState(true);
-    const [isSorted, setIsSorted] = useState(true);
+    const [isSorted, setIsSorted] = useState(false);
     const [inProgress, setInProgress] = useState(false);
 
     useEffect(() => {
@@ -71,16 +71,20 @@ export default function GoodsTools({token}) {
 
         setInProgress(true);
 
-        const result = await uploadGoods(token, goods);
-        if (result?.severity === "success") setAnswer(result);
+        if (checkAccess(currentUser)) {
+            const result = await uploadGoods(token, goods);
+            if (result?.severity === "success") setAnswer(result);
+        }
     };
+
+    // console.log(`\n selectedCategory`, selectedCategory);
 
     return (
         <Page
             label="Управление товарами"
             subtitle="Сортировка товаров"
         >
-            <Box className={`flex flex-wrap gap-2 p-1 border border-cyan-700 rounded`}>
+            <Box className={`flex flex-wrap gap-2 p-3 border bg-amber-500/5 border-amber-500/50 rounded`}>
                 {inProgress && <CircularProgress color="info" size={20} sx={{marginY: "auto"}} />}
                 {answer && (<Alert severity={answer?.severity || "info"}>{answer?.message || ""}</Alert>)}
                 <TextField
@@ -89,7 +93,16 @@ export default function GoodsTools({token}) {
                     disabled
                     value={goods?.length || 0}
                     size="small"
+                    sx={{width: 125}}
                 />
+                {selectedCategory && <TextField
+                    label='Выбранная категория'
+                    variant="outlined"
+                    disabled
+                    value={categories?.find(c => c.ID === selectedCategory)?.NAME || ""}
+                    size="small"
+                    sx={{width: 150}}
+                />}
                 <FormControlLabel
                     control={
                         <Switch
@@ -111,23 +124,17 @@ export default function GoodsTools({token}) {
                     label={`Сортировка ${!isSorted ? "с сайта" : "автоматическая"}`}
                 />
                 <Button
-                    variant="outlined"
-                    color="success"
+                    variant="contained"
+                    color="info"
                     // onClick={() => exportGoodsToXLSX(categories, goodsInCategory)}
                     size="small"
                 ><BackupTableIcon /></Button>
-                {currentUser?.user_id === 23 && <Button
-                    variant="outlined"
-                    color="warning"
+                {checkAccess(currentUser) && <Button
+                    variant="contained"
+                    color="error"
                     onClick={handleUpload}
                     size="small"
-                ><StorageIcon/></Button>}
-                {/*{currentUser?.user_id === 23 && <Button*/}
-                {/*    variant="outlined"*/}
-                {/*    color="error"*/}
-                {/*    // onClick={upDateGoods}*/}
-                {/*    size="small"*/}
-                {/*><OpenInBrowserRoundedIcon/></Button>}*/}
+                ><CloudUploadOutlinedIcon/></Button>}
             </Box>
             <Box className="grow flex flex-row gap-2 pt-3">
                 {categories?.length > 0 && (

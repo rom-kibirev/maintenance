@@ -108,25 +108,23 @@ export default function CategoriesTree({ categories, selectedCategory, setSelect
                 label={`${isActive ? "Активные" : "Все"} категории`}
             />}
 
-            {selectedCategory && <Button
-                variant="outlined"
-                color="warning"
-                onClick={() => setSelectedCategory(null)}
-                startIcon={<CancelIcon />}
-            >
-                Сбросить категории
-            </Button>}
-
-            <TextField
-                label="Поиск по имени"
-                variant="outlined"
-                size="small"
-                fullWidth
-                margin="normal"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{m: 0}}
-            />
+            <Box className={`flex flex-row gap-2`}>
+                <TextField
+                    label="Поиск по имени"
+                    variant="standard"
+                    size="small"
+                    margin="normal"
+                    value={searchTerm || ""}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{m: 0}}
+                />
+                {selectedCategory && <Button
+                    variant="contained"
+                    color="warning"
+                    onClick={() => setSelectedCategory(null)}
+                    size="small"
+                ><CancelIcon /></Button>}
+            </Box>
             <List className={`h-full overflow-y-auto relative max-h-[65vh]`}>
                 {searchTerm.length < 2
                     ? categoryTree.map(parentCategory => renderCategoryTree(parentCategory))

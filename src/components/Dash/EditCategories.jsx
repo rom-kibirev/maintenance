@@ -4,8 +4,9 @@ import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import BasicModal from "../UI/ModalTemplate";
 import { patchCategories } from "../../requests/api_v2";
 import FindCategories from "../UI/FindCategory";
+import UnpublishedRoundedIcon from '@mui/icons-material/UnpublishedRounded';
 
-export default function EditCategories({ data, chosenCategory, token }) {
+export default function EditCategories({ data, chosenCategory, token, unselectCategory }) {
     const [selected, setSelected] = useState(null);
     const [isEdit, setIsEdit] = useState(null);
     const [answer, setAnswer] = useState(null);
@@ -160,15 +161,23 @@ export default function EditCategories({ data, chosenCategory, token }) {
             >
                 {isEdit?.content}
             </BasicModal>}
-            <Typography variant='h6'>Изменение категории</Typography>
             <Typography variant='h3'>{selected.NAME}</Typography>
             <Box className={`bg-black/10 flex flex-row flex-wrap gap-2 rounded`}>
+                <Button
+                    color="success"
+                    variant="contained"
+                    onClick={unselectCategory}
+                    size="small"
+                    sx={{height: "max-content", marginY: "auto"}}
+                ><UnpublishedRoundedIcon /></Button>
                 {names.map((name,index) => {
 
                     return (
                         <Box key={index} className={`border border-amber-500/10 p-2`}>
                             <Box className={`bg-black/20 px-2 text-center`}>{name.label}</Box>
-                            {name.value && <Box>{selected[name.key]}</Box>}
+                            {name.value && <Box className={`flex flex-col gap-2 items-center`}>
+                                {selected[name.key]}
+                            </Box>}
                             {name.switch && <FormControlLabel
                                 control={
                                     <Switch

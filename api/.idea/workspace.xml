@@ -5,15 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f34cb4e7-9732-47f8-934e-3b61c4afb1c8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../src/components/Dash/_GoodsTools.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/Dash/BrandStatistics.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/Dash/BrandStatistics.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/Dash/CategoriesTree.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/Dash/CategoriesTree.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/components/Dash/GoodsTools.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/Dash/GoodsTools.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/Search/SearchGoods.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/Search/SearchGoods.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/UI/global/sortTools.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/UI/global/sortTools.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/requests/api_v2.js" beforeDir="false" afterPath="$PROJECT_DIR$/../src/requests/api_v2.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -124,6 +116,7 @@
       <workItem from="1736022630059" duration="2359000" />
       <workItem from="1736118127531" duration="117000" />
       <workItem from="1736173381138" duration="1238000" />
+      <workItem from="1736202193868" duration="10000" />
     </task>
     <servers />
   </component>
@@ -142,7 +135,7 @@
     </option>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/api$main.coverage" NAME="main Coverage Results" MODIFIED="1736173386571" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/api$main.coverage" NAME="main Coverage Results" MODIFIED="1736202195702" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/api$api.coverage" NAME="api Coverage Results" MODIFIED="1736022706704" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
