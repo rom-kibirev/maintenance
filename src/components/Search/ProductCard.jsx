@@ -5,7 +5,7 @@ import ShoppingCartRoundedIcon from "@mui/icons-material/ShoppingCartRounded";
 import {countValue} from "../UI/global/templates";
 import {getDeclension} from "../UI/global/sortTools";
 
-export default function ProductCard({ product, isFeed, width, autoplay, shortMode }) {
+export default function ProductCard({ product, isFeed, width, autoplay, shortMode, viewmode }) {
 
     const isCategory = product.category;
 

@@ -43,6 +43,7 @@ export default function CatalogView () {
                     out
                     previewProducts={outProductList}
                     feed={goodsByFeed}
+                    viewmode
                 />
                 <Header
                     title='Карточка товара'

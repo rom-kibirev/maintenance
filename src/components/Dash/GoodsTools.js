@@ -5,6 +5,7 @@ import CategoriesTree from "./CategoriesTree";
 import BrandStatistics from "./BrandStatistics";
 import BackupTableIcon from '@mui/icons-material/BackupTable';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import ProductsList from "./ProductsList";
 import {fetchGoodsData, getCategoryDescendants, mergeFeed, sortProductsByBrand} from "../UI/global/sortTools";
 import {fetchUserData, uploadGoods} from "../../requests/api_v2";
@@ -17,7 +18,7 @@ export default function GoodsTools({token}) {
     const [goods, setGoods] = useState(null);
     const [feed, setFeed] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
-    const [selectedCategory, setSelectedCategory] = useState(8165);
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const [isFeed, setIsFeed] = useState(true);
     const [isSorted, setIsSorted] = useState(false);
     const [inProgress, setInProgress] = useState(false);
@@ -77,7 +78,20 @@ export default function GoodsTools({token}) {
         }
     };
 
-    // console.log(`\n selectedCategory`, selectedCategory);
+    const handleSearchManagement = () => {
+
+        const updateGoods = [...goods].map(good => {
+            const { NAME, VENDOR } = good;
+            return {
+                ...good,
+                SEARCHABLE_CONTENT: `${NAME} ${VENDOR}`.toUpperCase()
+            }
+        });
+
+        console.log(`\n updateGoods`, updateGoods);
+    };
+
+    console.log(`\n goods`, goods);
 
     return (
         <Page
@@ -135,6 +149,12 @@ export default function GoodsTools({token}) {
                     onClick={handleUpload}
                     size="small"
                 ><CloudUploadOutlinedIcon/></Button>}
+                {checkAccess(currentUser) && <Button
+                    variant="contained"
+                    color="warning"
+                    onClick={handleSearchManagement}
+                    size="small"
+                ><ManageSearchIcon/></Button>}
             </Box>
             <Box className="grow flex flex-row gap-2 pt-3">
                 {categories?.length > 0 && (

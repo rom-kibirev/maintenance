@@ -62,7 +62,7 @@ export default function PrintGoods ({filteredGoods, isFeed, shortMode, viewmode}
             <Box style={style} display="grid" gridTemplateColumns={`repeat(${shortMode ? 1 : columns}, 1fr)`} gap="20px">
                 {rowItems?.map((product) => (
                     <Box key={product.ID} className={shortMode ? 'w-full' : `max-w-[250px]`}>
-                        <ProductCard product={product} isFeed={isFeed} shortMode={shortMode} viewmode />
+                        <ProductCard product={product} isFeed={isFeed} shortMode={shortMode} viewmode={viewmode} />
                     </Box>
                 ))}
             </Box>

@@ -19,7 +19,8 @@ export default function PrintCategories({
                                             out,
                                             previewProducts,
                                             feed,
-                                            setChosenCategory
+                                            setChosenCategory,
+                                            viewmode
                                         }) {
 
     // console.log('\n PrintCategories', {
@@ -99,7 +100,7 @@ export default function PrintCategories({
         }));
 
 
-        setChosenCategory(ID);
+        if (!viewmode) setChosenCategory(ID);
     };
 
     // Обработчик наведения на категорию
@@ -201,7 +202,7 @@ export default function PrintCategories({
                             onMouseEnter={() => handleCategoryHover(category)}
                             onMouseLeave={handleCategoryLeave}
                             onClick={() => handleCategoryClick(category.ID)}
-                            sx={{ pl: 3 }}
+                            sx={{ pl: 3, bgcolor: !category.ACTIVE ? 'rgba(255,100,100,0.5)' : '' }}
                         >
                             <ListItemText primary={category.NAME} />
                             {openCategories[category.ID] ? <ExpandLess /> : <ExpandMore />}
@@ -234,7 +235,7 @@ export default function PrintCategories({
 
         setSelectedCategory(id);
 
-        setChosenCategory(id);
+        if (!viewmode) setChosenCategory(id);
     }
 
     return (
@@ -278,7 +279,10 @@ export default function PrintCategories({
                                 category.ID === selectedCategory
                                     ? "border-[#ffb61c] bg-white/5 text-[#ffb61c]"
                                     : "bg-transparent text-inherit border-transparent"
-                            } rounded-md border-l hover:border-[#ffb61c] hover:text-[#ffb61c] hover:bg-white/5 px-3 py-1.5 transform duration-200 cursor-pointer`}
+                            } 
+                            ${!category.ACTIVE ? 'bg-red-500/50' : ''}
+                            rounded-md border-l hover:border-[#ffb61c] hover:text-[#ffb61c] hover:bg-white/5 px-3 py-1.5 transform duration-200 cursor-pointer
+                            `}
                             onClick={() => selectedHandler(category.ID)}
                         >
                             {category.NAME}

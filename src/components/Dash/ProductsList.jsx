@@ -54,7 +54,7 @@ export default function ProductsList({ goods, isAddImgCategory, feed, isTollsSta
 
         return (
             <div style={style}>
-                <PrintGoods filteredGoods={[sortedGoods[index]]} isFeed={isFeed} shortMode={shortMode} viewmode />
+                <PrintGoods filteredGoods={[sortedGoods[index]]} isFeed={isFeed} shortMode={shortMode} viewmode={viewmode} />
             </div>
         );
     };

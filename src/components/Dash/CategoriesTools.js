@@ -27,7 +27,7 @@ export default function CategoriesTools ({ token }) {
                 const categories = await fetchCategories(token, true);
                 setCategories(categories);
 
-                const updatePrintCategories = categories.filter(c => c.ACTIVE === isActive).sort((a, b) => a.SORT - b.SORT);
+                const updatePrintCategories = categories.filter(c => isActive ? c.ACTIVE === true : true).sort((a, b) => a.SORT - b.SORT);
                 setPrintCategories(updatePrintCategories);
 
                 const userResponse = await fetchUserData(token);
@@ -71,8 +71,6 @@ export default function CategoriesTools ({ token }) {
         }
     };
 
-
-
     return (
         <Page
             label="Управление категориями"
@@ -89,7 +87,7 @@ export default function CategoriesTools ({ token }) {
                             onChange={() => setIsActive(!isActive)}
                         />
                     }
-                    label={`${isActive ? "А" : "Не а"}ктивныее категории`}
+                    label={`${isActive ? "Активные" : "Все"} категории`}
                 />
                 <TextField
                     disabled
