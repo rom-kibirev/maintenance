@@ -293,7 +293,6 @@ export const fetchUsersData = async (token) => {
         };
     }
 };
-
 // orders
 export const fetchOrdersData = async (token, ids) => {
     try {
@@ -317,6 +316,85 @@ export const fetchOrdersData = async (token, ids) => {
         return {
             success: false,
             message: error?.response?.data?.errors?.map((e, i) => `fetchCategoryData - attr: ${e.attr} detail: ${e.detail} code: ${e.code}`)
+        };
+    }
+};
+// all orders
+export const fetchAllOrdersData = async (token) => {
+    try {
+        // Сначала получаем данные пользователей
+        const userData = await fetchUsersData(token);
+        if (!userData.success) {
+            throw new Error('Не удалось получить данные пользователей');
+        }
+
+        let allOrders = [];
+        let currentPage = 1;
+        let hasMorePages = true;
+
+        // Создаем мапу пользователей по order_id для быстрого поиска
+        const userOrdersMap = new Map();
+        userData.data.forEach(user => {
+            if (user.order_id_list) {
+                user.order_id_list.forEach(orderId => {
+                    userOrdersMap.set(orderId, user);
+                });
+            }
+        });
+
+        while (hasMorePages) {
+            try {
+                const response = await axios.get(
+                    `${api}/orders?page=${currentPage}`,
+                    headersRequests('get', token)
+                );
+
+                const { data, total_pages, page } = response.data;
+
+                // Добавляем информацию о пользователе к каждому заказу
+                const ordersWithUsers = data.map(order => {
+                    const matchingUser = userOrdersMap.get(order.posting_number);
+                    return {
+                        ...order,
+                        order_user: matchingUser || null
+                    };
+                });
+
+                allOrders = [...allOrders, ...ordersWithUsers];
+
+                // console.log(`Получена страница ${page} из ${total_pages}`);
+
+                hasMorePages = page < total_pages;
+                currentPage++;
+
+                if (hasMorePages) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            } catch (error) {
+                console.error(`Ошибка при получении страницы ${currentPage}:`,
+                    error.response ? error.response.data : error.message
+                );
+
+                return {
+                    success: false,
+                    message: error?.response?.data?.errors?.map((e, i) => `fetchCategoryData - attr: ${e.attr} detail: ${e.detail} code: ${e.code}`)
+                };
+            }
+        }
+
+        return {
+            success: true,
+            data: allOrders
+        };
+
+    } catch (error) {
+        console.error('Общая ошибка fetchAllOrdersData:',
+            error.response ? error.response.data : error.message
+        );
+
+        return {
+            success: false,
+            message: 'Произошла ошибка при получении заказов'
         };
     }
 };

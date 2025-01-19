@@ -156,7 +156,7 @@ const Sidebar = ({handleLogout, token}) => {
                         {routers(token).map((item, index) => {
 
                             return (
-                                <Item
+                                !item.falseSide && <Item
                                     key={index}
                                     title={item.title}
                                     to={item.to}

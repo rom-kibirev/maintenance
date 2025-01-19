@@ -3,7 +3,7 @@ import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import PlumbingRoundedIcon from "@mui/icons-material/PlumbingRounded";
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+// import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import React from "react";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import WelcomeUser from "./components/Dash/WelcomeUser";
@@ -13,6 +13,9 @@ import GoodsTools from "./components/Dash/GoodsTools";
 import FeedGoodsDiff from "./components/Dash/FeedGoodsDiff";
 import CatalogView from "./components/Out/CatalogView";
 import ViewUsers from "./components/Orders/ViewUsers";
+import ViewAllOrders from "./components/Orders/ViewAllOrders";
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import PeopleIcon from '@mui/icons-material/People';
 
 export const routers = (token) => ([
     {
@@ -62,11 +65,18 @@ export const routers = (token) => ([
         component: <CatalogView token={token} />,
     },
     {
-        title: 'Просмотр заказов',
+        title: 'Пользователи',
         to: '/orders',
         worked: 'Просмотр всех пользователей, заказов пользователей',
         description: 'Необходимо тестирование с 1С',
-        icon: <ShoppingCartIcon />,
+        icon: <PeopleIcon />,
         component: <ViewUsers token={token} />,
+    },
+    {
+        title: 'Просмотр всех заказов',
+        to: '/orders-all',
+        component: <ViewAllOrders token={token} />,
+        icon: <AddShoppingCartIcon />,
+        falsePrint: true,
     },
 ]);

@@ -2,7 +2,7 @@ import {useEffect, useState} from "react";
 import Page from "../UI/Theme/Page";
 import {fetchOrdersData, fetchUserData, fetchUsersData} from "../../requests/api_v2";
 import PrintTable from "../UI/Table/PrintTable";
-import {Alert, Box, Button, Typography} from "@mui/material";
+import {Box, Button, Typography} from "@mui/material";
 import PageviewRoundedIcon from '@mui/icons-material/PageviewRounded';
 import {useLocation, useNavigate} from "react-router-dom";
 import PrintOrder from "./PrintOrder";
@@ -114,8 +114,8 @@ export default function ViewUsers ({token}) {
     // });
 
     return (
-        accessGranted ? <Page
-                label="Просмотр заказов"
+        <Page
+                label="Просмотр пользователей"
                 subtitle="пользователей сайта Runtec"
             >
                 {!!selectedUser && <Button
@@ -125,21 +125,20 @@ export default function ViewUsers ({token}) {
                 >
                     Назад
                 </Button>}
-                <Box className={`h-full flex gap-2 flex-col`}>
-                    {users?.length && <PrintTable
-                        rows={!!selectedUser ? [users.find(user => user.id === selectedUser)] : users}
-                        columns={columns}
-                        height={selectedUser && `160px`}
-                    />}
-                    {(!!selectedUser && users?.length) && <Box className={`grow`}>
-                        <Typography variant="h6" component="h2">GUID пользователя и его контрагентов:</Typography>
-                        <Box>{users?.find(user => user.id === selectedUser).customers_id_list?.join(', ')}</Box>
-                        {orders?.length && <Box className={`flex flex-wrap gap-2 mt-2`}>
-                            {orders.map(order => <PrintOrder data={order} />)}
-                        </Box>}
+            {accessGranted && <Box className={`h-full flex gap-2 flex-col`}>
+                {users?.length && <PrintTable
+                    rows={!!selectedUser ? [users.find(user => user.id === selectedUser)] : users}
+                    columns={columns}
+                    height={selectedUser && `160px`}
+                />}
+                {(!!selectedUser && users?.length) && <Box className={`grow`}>
+                    <Typography variant="h6" component="h2">GUID пользователя и его контрагентов:</Typography>
+                    <Box>{users?.find(user => user.id === selectedUser).customers_id_list?.join(', ')}</Box>
+                    {orders?.length && <Box className={`flex flex-wrap gap-2 mt-2`}>
+                        {orders.map(order => <PrintOrder data={order}/>)}
                     </Box>}
-                </Box>
-            </Page> :
-            <Alert severity="warning">Необходим другой уровень доступа</Alert>
+                </Box>}
+            </Box>}
+            </Page>
     )
 }
