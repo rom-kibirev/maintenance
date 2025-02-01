@@ -20,7 +20,7 @@ export default function FindCategories({data, handleCategoryClick}) {
         setFilteredCategories(filtered); // Обновляем список категорий
     };
 
-    console.log('\n filteredCategories', filteredCategories);
+    // console.log('\n filteredCategories', filteredCategories);
 
     return (
         <Box>

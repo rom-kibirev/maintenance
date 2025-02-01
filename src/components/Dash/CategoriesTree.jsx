@@ -67,14 +67,21 @@ export default function CategoriesTree({ categories, selectedCategory, setSelect
                     fullWidth
                     className="flex items-center justify-start"
                     sx={{ textTransform: "none" }}
-                    startIcon={(category.PREVIEW_PICTURE) ? <Box className={`mr-3 rounded-md overflow-hidden`}>
+                    // startIcon={(category.PREVIEW_PICTURE) ? <Box className={`mr-3 rounded-md overflow-hidden`}>
+                    //     <img
+                    //         src={category.PREVIEW_PICTURE}
+                    //         alt={category.NAME}
+                    //         style={{ width: 64, height: 64, objectFit: "cover" }}
+                    //     />
+                    // </Box> : <span className={`mr-2`}>{level}</span>}
+                >
+                    {(category.PREVIEW_PICTURE) && <Box className={`mr-3 rounded-md overflow-hidden`}>
                         <img
                             src={category.PREVIEW_PICTURE}
                             alt={category.NAME}
-                            style={{ width: 64, height: 64, objectFit: "cover" }}
+                            style={{width: 64, height: 64, objectFit: "cover"}}
                         />
-                    </Box> : <span className={`mr-2`}>{level}</span>}
-                >
+                    </Box>}
                     {category.NAME}
                 </Button>
                 {category.children && category.children.length > 0 && (

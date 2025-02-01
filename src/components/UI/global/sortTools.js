@@ -9,7 +9,7 @@ export async function fetchGoodsData(token) {
         // Получаем категории
         const categories = await fetchCategories(token);
 
-        const lastFileNumber = 14;
+        const lastFileNumber = 71;
 
         // Загружаем части товаров
         const filePromises = Array.from({ length: lastFileNumber }, (_, i) => {
