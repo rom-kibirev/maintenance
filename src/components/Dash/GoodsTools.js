@@ -134,7 +134,7 @@ export default function GoodsTools({token}) {
         console.log(`\n updateGoods`, updateGoods);
     };
 
-    // console.log(`%c@Алексей: Параметры категорий и товаров`, 'color: rgb(100,255,0); font-size: 24px;', {"Категории": categories, "Товары": goods});
+    console.log(`%c@Алексей: Параметры категорий и товаров`, 'color: rgb(100,255,0); font-size: 24px;', {"Категории": categories, "Товары": goods});
     // console.log(`\n selectedCategory`, selectedCategory);
 
     const methods = [
@@ -238,7 +238,7 @@ export default function GoodsTools({token}) {
     return (
         <Page
             label="Управление товарами"
-            subtitle={current.title}
+            subtitle={current?.title}
         >
             {isEdit && <BasicModal open={!!isEdit} handleClose={() => setIsEdit(null)} title={isEdit?.title}>{isEdit?.content}</BasicModal>}
             <Box className={`flex gap-2 p-3 border bg-zinc-900/50 border-amber-500/20 rounded`}>
@@ -247,7 +247,7 @@ export default function GoodsTools({token}) {
                 {methods?.map(m => (<IconButton key={m.id} color={m.color} onClick={() => setCurrentMethod(m.id)} title={m.title}>{m.icon}</IconButton>))}
                 <TextField label='Количество товаров' disabled value={(filteredGoods?.length && currentMethod === 2) ? filteredGoods.length : goods?.length || 0} size="small" sx={{width: 120}} />
                 {!!selectedCategory && <TextField label='Выбранная категория' disabled value={categories?.find(c => c.ID === selectedCategory)?.NAME || ""} size="small" />}
-                {current.id === 0 && <>
+                {current?.id === 0 && <>
                     <FormControlLabel
                         control={
                             <Switch
@@ -287,7 +287,7 @@ export default function GoodsTools({token}) {
                         size="small"
                     ><ManageSearchIcon/></Button>}
                 </>}
-                {(current.id === 1 && selectedCategory) && <Button color="warning" variant="contained" onClick={() => transferGoodsHandler()} >Перенести товары в категорию</Button>}
+                {(current?.id === 1 && selectedCategory) && <Button color="warning" variant="contained" onClick={() => transferGoodsHandler()} >Перенести товары в категорию</Button>}
             </Box>
             {(currentMethod === 0 || currentMethod === 1) && <GoodToolsPrintCatalog categories={categories} goods={goods} currentMethod={currentMethod} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} feed={feed} />}
             {(filteredGoods?.length && currentMethod === 2) && <Box className="flex flex-col gap-2 pt-3">

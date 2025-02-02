@@ -9,7 +9,7 @@ export async function fetchGoodsData(token) {
         // Получаем категории
         const categories = await fetchCategories(token);
 
-        const lastFileNumber = 71;
+        const lastFileNumber = 15;
 
         // Загружаем части товаров
         const filePromises = Array.from({ length: lastFileNumber }, (_, i) => {
@@ -25,6 +25,11 @@ export async function fetchGoodsData(token) {
 
         const responses = await Promise.all(filePromises);
         const allGoods = new Map();
+
+        console.log(`\n `, {
+            responses,
+            allGoods,
+        });
 
         // Объединяем данные из частей
         responses.forEach((response) => {
