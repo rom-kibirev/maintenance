@@ -17,6 +17,7 @@ import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import PeopleIcon from '@mui/icons-material/People';
 import Points from "./components/Points/Points";
 import WarehouseIcon from '@mui/icons-material/Warehouse';
+import CategoriesTools1C from "./components/Dash/CategoriesTools1C";
 
 export const routers = (token) => ([
     {
@@ -87,6 +88,14 @@ export const routers = (token) => ([
         to: '/orders-all',
         component: <ViewAllOrders token={token} />,
         icon: <AddShoppingCartIcon />,
+        falsePrint: true,
+        doubtfully_necessary: true,
+    },
+    {
+        title: 'Просмотр категорий 1C',
+        to: '/categories-tools-1c',
+        component: <CategoriesTools1C token={token} />,
+        icon: <CategoryRoundedIcon />,
         falsePrint: true,
         doubtfully_necessary: true,
     },

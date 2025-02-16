@@ -7,6 +7,7 @@ import Page from "../UI/Theme/Page";
 import {editContentUsers} from "../UI/users";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 import {checkAccess} from "../UI/global/userStatus";
+import CategorySearch from "./CategorySearch";
 
 export default function CategoriesTools ({ token }) {
 
@@ -71,6 +72,11 @@ export default function CategoriesTools ({ token }) {
         }
     };
 
+    console.log(`\n categories`, {
+        categories,
+        selectedCategory
+    });
+
     return (
         <Page
             label="Управление категориями"
@@ -94,6 +100,10 @@ export default function CategoriesTools ({ token }) {
                     id="catcount"
                     label="Количество всех категорий"
                     value={categories.length || ''}
+                />
+                <CategorySearch
+                    categories={categories || []}
+                    setSelectedCategory={setSelectedCategory}
                 />
                 {editContentUsers.includes(currentUser?.user_id) && <Button
                     color="error"
