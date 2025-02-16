@@ -12,7 +12,7 @@ import {useCookies} from "react-cookie";
 import {fetchUserData} from "../../requests/api_v2";
 import {avatarGoogle} from "../../data/templates";
 
-const Item = ({ title, to, icon, selected, setSelected }) => {
+const Item = ({ title, to, icon, selected, setSelected, doubtfully_necessary }) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
@@ -20,7 +20,7 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
         <MenuItem
             active={selected === title}
             style={{
-                color: colors.grey[100],
+                color: doubtfully_necessary? colors.grey[500] : colors.grey[100],
             }}
             onClick={() => setSelected(title)}
             icon={icon}
@@ -163,6 +163,7 @@ const Sidebar = ({handleLogout, token}) => {
                                     icon={item.icon}
                                     selected={selected}
                                     setSelected={setSelected}
+                                    doubtfully_necessary={item.doubtfully_necessary}
                                 />
                             );
                         })}

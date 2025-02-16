@@ -29,7 +29,7 @@ export default function GoodsTools({token}) {
     const [isFeed, setIsFeed] = useState(false);
     const [isSorted, setIsSorted] = useState(false);
     const [inProgress, setInProgress] = useState(false);
-    const [currentMethod, setCurrentMethod] = useLocalStorage('method', null);
+    const [currentMethod, setCurrentMethod] = useLocalStorage('method_goods', null);
     const [isEdit, setIsEdit] = useState(null);
     const [filteredGoods, setFilteredGoods] = useState(null);
     const [brands, setBrands] = useState(null);
@@ -244,7 +244,7 @@ export default function GoodsTools({token}) {
             <Box className={`flex gap-2 p-3 border bg-zinc-900/50 border-amber-500/20 rounded`}>
                 {inProgress && <CircularProgress color="info" size={20} sx={{marginY: "auto"}} />}
                 {!!answer && (<Alert severity={answer?.severity || "info"}>{answer?.message || ""}</Alert>)}
-                {methods?.map(m => (<IconButton key={m.id} color={m.color} onClick={() => setCurrentMethod(m.id)} title={m.title}>{m.icon}</IconButton>))}
+                {methods?.map(m => (<IconButton key={m.id} color={currentMethod === m.id ? "primory" : m.color} onClick={() => setCurrentMethod(m.id)} title={m.title}>{m.icon}</IconButton>))}
                 <TextField label='Количество товаров' disabled value={(filteredGoods?.length && currentMethod === 2) ? filteredGoods.length : goods?.length || 0} size="small" sx={{width: 120}} />
                 {!!selectedCategory && <TextField label='Выбранная категория' disabled value={categories?.find(c => c.ID === selectedCategory)?.NAME || ""} size="small" />}
                 {current?.id === 0 && <>

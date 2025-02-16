@@ -3,7 +3,6 @@ import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import PlumbingRoundedIcon from "@mui/icons-material/PlumbingRounded";
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
-// import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import React from "react";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import WelcomeUser from "./components/Dash/WelcomeUser";
@@ -16,6 +15,8 @@ import ViewUsers from "./components/Orders/ViewUsers";
 import ViewAllOrders from "./components/Orders/ViewAllOrders";
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import PeopleIcon from '@mui/icons-material/People';
+import Points from "./components/Points/Points";
+import WarehouseIcon from '@mui/icons-material/Warehouse';
 
 export const routers = (token) => ([
     {
@@ -65,12 +66,21 @@ export const routers = (token) => ([
         component: <CatalogView token={token} />,
     },
     {
+        title: 'Точки выдачи товаров',
+        to: '/points',
+        description: 'Ведется работа над работой с точками (Склады/Магазины/Дилеры/Постаматы)',
+        component: <Points token={token} />,
+        icon: <WarehouseIcon />,
+        // falsePrint: true,
+    },
+    {
         title: 'Пользователи',
         to: '/orders',
         worked: 'Просмотр всех пользователей, заказов пользователей',
         description: 'Необходимо тестирование с 1С',
         icon: <PeopleIcon />,
         component: <ViewUsers token={token} />,
+        doubtfully_necessary: true,
     },
     {
         title: 'Просмотр всех заказов',
@@ -78,5 +88,6 @@ export const routers = (token) => ([
         component: <ViewAllOrders token={token} />,
         icon: <AddShoppingCartIcon />,
         falsePrint: true,
+        doubtfully_necessary: true,
     },
 ]);
