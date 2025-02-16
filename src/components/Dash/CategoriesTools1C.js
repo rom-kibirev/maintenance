@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Page from "../UI/Theme/Page";
-import {TextField, List, ListItem, ListItemText, Box} from '@mui/material';
+import { TextField, List, ListItem, ListItemText, Box, Chip } from '@mui/material';
+import {fetchCategories} from "../../requests/api_v2";
 
-export default function CategoriesTools1C() {
+export default function CategoriesTools1C({token}) {
     const [categories, setCategories] = useState([]);
     const [filteredCategories, setFilteredCategories] = useState([]);
+    const [siteCategories, setSiteCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
@@ -15,8 +17,14 @@ export default function CategoriesTools1C() {
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
-                setCategories(data);
-                setFilteredCategories(data);
+
+                // Сортировка данных по name от А до Я
+                const sortedData = data.sort((a, b) =>
+                    a.name.localeCompare(b.name, 'ru', { sensitivity: 'base' })
+                );
+
+                setCategories(sortedData);
+                setFilteredCategories(sortedData);
             } catch (error) {
                 console.error("Ошибка при загрузке категорий:", error);
             }
@@ -24,6 +32,19 @@ export default function CategoriesTools1C() {
 
         fetchCategories();
     }, []);
+
+    useEffect(() => {
+        const loadSiteCategories = async () => {
+            try {
+                const data = await fetchCategories(token, true);
+                setSiteCategories(data);
+            } catch (error) {
+                console.error("Ошибка при загрузке категорий с сайта:", error);
+            }
+        };
+
+        loadSiteCategories();
+    }, [token]);
 
     useEffect(() => {
         const filtered = categories.filter(category =>
@@ -35,6 +56,22 @@ export default function CategoriesTools1C() {
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
+    };
+
+    const getCategoryStatus = (category) => {
+        const siteCategory = siteCategories.find(sc => sc.XML_ID === category.guid);
+
+        if (!siteCategory) return [{ label: "Нет на сайте", color: "error" }];
+
+        const statuses = [];
+        if (siteCategory.NAME !== category.name)
+            statuses.push({ label: "Не совпадают имена", color: "warning" });
+        if (siteCategory.XML_PARENT_ID !== category.parent)
+            statuses.push({ label: "Не совпадают родители", color: "warning" });
+        if (!siteCategory.ACTIVE)
+            statuses.push({ label: "Не активна", color: "default" });
+
+        return statuses.length > 0 ? statuses : [{ label: "OK", color: "success" }];
     };
 
     return (
@@ -55,16 +92,29 @@ export default function CategoriesTools1C() {
                     margin="normal"
                 />
             </Box>
-            <List>
-                {filteredCategories.map((category) => (
-                    <ListItem key={category.guid}>
-                        <ListItemText
-                            primary={category.name}
-                            secondary={`GUID: ${category.guid}, Parent: ${category.parent}`}
-                        />
-                    </ListItem>
-                ))}
-            </List>
+            <Box sx={{ height: 'calc(100vh - 200px)', overflow: 'auto' }}>
+                <List>
+                    {filteredCategories.map((category) => (
+                        <ListItem key={category.guid}>
+                            <ListItemText
+                                primary={category.name}
+                                secondary={`GUID: ${category.guid}, Parent: ${category.parent}`}
+                            />
+                            <Box>
+                                {getCategoryStatus(category).map((status, index) => (
+                                    <Chip
+                                        key={index}
+                                        label={status.label}
+                                        color={status.color}
+                                        size="small"
+                                        sx={{ marginLeft: 1 }}
+                                    />
+                                ))}
+                            </Box>
+                        </ListItem>
+                    ))}
+                </List>
+            </Box>
         </Page>
     );
 }
