@@ -1,6 +1,6 @@
 import Page from "../UI/Theme/Page";
 import {useState} from "react";
-import warehouses1C from "./data_1c.json";
+import warehouses1C from "./warehouses.json";
 import {Box, Button} from "@mui/material";
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import useLocalStorage from "../UI/global/useLocalStorage";

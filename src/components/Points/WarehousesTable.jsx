@@ -13,7 +13,7 @@ import {
     Button,
     ButtonGroup,
     Autocomplete,
-    TextField,
+    TextField, Snackbar, Alert,
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import ContactsIcon from '@mui/icons-material/Contacts';
@@ -22,10 +22,13 @@ import ErrorIcon from '@mui/icons-material/Error';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import {handleExportAll, handleExportFiltered} from "./WarehousesScripts";
+// import StorageIcon from '@mui/icons-material/Storage';
+// import {injectWarehouses} from "../../requests/api_v1";
 
 const WarehousesTable = ({ warehouses, warehouses_checked, setWarehouses_checked }) => {
     const [activeFilter, setActiveFilter] = React.useState('withAddress');
     const [selectedCity, setSelectedCity] = useState(null);
+    const [injectionStatus, setInjectionStatus] = useState({ loading: false, message: '', type: '' });
 
     // Извлечение городов из адресов
     const cities = useMemo(() => {
@@ -101,7 +104,7 @@ const WarehousesTable = ({ warehouses, warehouses_checked, setWarehouses_checked
         );
     }, [groupedWarehouses, activeFilter, selectedCity]);// Обработчик изменения чекбокса
 
-   const handleCheckboxChange = (guid) => {
+    const handleCheckboxChange = (guid) => {
         setWarehouses_checked(prev => {
             if (prev.includes(guid)) {
                 return prev.filter(id => id !== guid);
@@ -109,12 +112,46 @@ const WarehousesTable = ({ warehouses, warehouses_checked, setWarehouses_checked
             return [...prev, guid];
         });
     };
+    // const handleInjection = () => {
+    //     setInjectionStatus({ loading: true, message: 'Отправка данных...', type: 'info' });
+    //
+    //     injectWarehouses(warehouses)
+    //         .then(result => {
+    //             if (result.success) {
+    //                 setInjectionStatus({
+    //                     loading: false,
+    //                     message: 'Данные успешно отправлены',
+    //                     type: 'success'
+    //                 });
+    //             } else {
+    //                 throw new Error(result.error);
+    //             }
+    //         })
+    //         .catch(error => {
+    //             setInjectionStatus({
+    //                 loading: false,
+    //                 message: `Ошибка: ${error.message}`,
+    //                 type: 'error'
+    //             });
+    //         });
+    // };
 
     // Обновленный return с добавлением селекта городов
     return (
         <Box>
             <Box className="flex flex-wrap gap-4 mb-4">
                 <Box className="flex gap-2 flex-wrap">
+                    {injectionStatus.message && (
+                        <Snackbar
+                            open={!!injectionStatus.message}
+                            autoHideDuration={6000}
+                            onClose={() => setInjectionStatus(prev => ({ ...prev, message: '' }))}
+                        >
+                            <Alert severity={injectionStatus.type}>
+                                {injectionStatus.message}
+                            </Alert>
+                        </Snackbar>
+                    )}
                     <Autocomplete
                         options={cities}
                         value={selectedCity}
@@ -143,6 +180,15 @@ const WarehousesTable = ({ warehouses, warehouses_checked, setWarehouses_checked
                             {filter.label} ({filter.count})
                         </Button>
                     ))}
+                    {/*<Button*/}
+                    {/*    variant="outlined"*/}
+                    {/*    startIcon={<StorageIcon />}*/}
+                    {/*    color="error"*/}
+                    {/*    onClick={handleInjection}*/}
+                    {/*    disabled={injectionStatus.loading || !warehouses.length}*/}
+                    {/*>*/}
+                    {/*    {injectionStatus.loading ? "Отправка..." : `Инъекция (${warehouses.length})`}*/}
+                    {/*</Button>*/}
                     <ButtonGroup variant="outlined" color="success">
                         <Button
                             startIcon={<FileDownloadIcon />}

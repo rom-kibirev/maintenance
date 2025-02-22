@@ -1,13 +1,31 @@
 import React, { useEffect, useState } from "react";
 import Page from "../UI/Theme/Page";
-import { TextField, List, ListItem, ListItemText, Box, Chip } from '@mui/material';
+import { TextField, List, ListItem, ListItemText, Box, Chip, MenuItem, Select, Button } from '@mui/material';
 import {fetchCategories} from "../../requests/api_v2";
+import * as XLSX from 'xlsx';
+
+const getCategoryStatus = (category, siteCategories) => {
+    const siteCategory = siteCategories.find(sc => sc.XML_ID === category.guid);
+
+    if (!siteCategory) return [{ label: "Нет на сайте", color: "error" }];
+
+    const statuses = [];
+    if (siteCategory.NAME !== category.name)
+        statuses.push({ label: "Не совпадают имена", color: "warning" });
+    if (siteCategory.XML_PARENT_ID !== category.parent)
+        statuses.push({ label: "Не совпадают родители", color: "warning" });
+    if (!siteCategory.ACTIVE)
+        statuses.push({ label: "Не активна", color: "default" });
+
+    return statuses.length > 0 ? statuses : [{ label: "OK", color: "success" }];
+};
 
 export default function CategoriesTools1C({token}) {
     const [categories, setCategories] = useState([]);
     const [filteredCategories, setFilteredCategories] = useState([]);
     const [siteCategories, setSiteCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -18,7 +36,6 @@ export default function CategoriesTools1C({token}) {
                 }
                 const data = await response.json();
 
-                // Сортировка данных по name от А до Я
                 const sortedData = data.sort((a, b) =>
                     a.name.localeCompare(b.name, 'ru', { sensitivity: 'base' })
                 );
@@ -47,31 +64,41 @@ export default function CategoriesTools1C({token}) {
     }, [token]);
 
     useEffect(() => {
-        const filtered = categories.filter(category =>
+        let filtered = categories.filter(category =>
             category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             category.guid.toLowerCase().includes(searchTerm.toLowerCase())
         );
+
+        if (statusFilter !== 'all') {
+            filtered = filtered.filter(category => {
+                const statuses = getCategoryStatus(category, siteCategories).map(s => s.label);
+                return statuses.includes(statusFilter);
+            });
+        }
+
         setFilteredCategories(filtered);
-    }, [searchTerm, categories]);
+    }, [searchTerm, statusFilter, categories, siteCategories]);
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
     };
 
-    const getCategoryStatus = (category) => {
-        const siteCategory = siteCategories.find(sc => sc.XML_ID === category.guid);
+    const handleStatusChange = (event) => {
+        setStatusFilter(event.target.value);
+    };
 
-        if (!siteCategory) return [{ label: "Нет на сайте", color: "error" }];
+    const exportToExcel = () => {
+        const dataToExport = filteredCategories.map(category => ({
+            Название: category.name,
+            GUID: category.guid,
+            Родитель: category.parent,
+            Статус: getCategoryStatus(category, siteCategories).map(s => s.label).join(', ')
+        }));
 
-        const statuses = [];
-        if (siteCategory.NAME !== category.name)
-            statuses.push({ label: "Не совпадают имена", color: "warning" });
-        if (siteCategory.XML_PARENT_ID !== category.parent)
-            statuses.push({ label: "Не совпадают родители", color: "warning" });
-        if (!siteCategory.ACTIVE)
-            statuses.push({ label: "Не активна", color: "default" });
-
-        return statuses.length > 0 ? statuses : [{ label: "OK", color: "success" }];
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Категории");
+        XLSX.writeFile(workbook, "categories.xlsx");
     };
 
     return (
@@ -91,6 +118,21 @@ export default function CategoriesTools1C({token}) {
                     onChange={handleSearchChange}
                     margin="normal"
                 />
+                <Select
+                    value={statusFilter}
+                    onChange={handleStatusChange}
+                    displayEmpty
+                >
+                    <MenuItem value="all">Все</MenuItem>
+                    <MenuItem value="Нет на сайте">Нет на сайте</MenuItem>
+                    <MenuItem value="Не совпадают имена">Не совпадают имена</MenuItem>
+                    <MenuItem value="Не совпадают родители">Не совпадают родители</MenuItem>
+                    <MenuItem value="Не активна">Не активна</MenuItem>
+                    <MenuItem value="OK">OK</MenuItem>
+                </Select>
+                <Button variant="contained" color="primary" onClick={exportToExcel}>
+                    Выгрузить в Excel
+                </Button>
             </Box>
             <Box sx={{ height: 'calc(100vh - 200px)', overflow: 'auto' }}>
                 <List>
@@ -99,9 +141,10 @@ export default function CategoriesTools1C({token}) {
                             <ListItemText
                                 primary={category.name}
                                 secondary={`GUID: ${category.guid}, Parent: ${category.parent}`}
+                                sx={{bgcolor: category.name.includes('Уценка') ? 'rgba(255,150,150,0.4)' : ''}}
                             />
                             <Box>
-                                {getCategoryStatus(category).map((status, index) => (
+                                {getCategoryStatus(category, siteCategories).map((status, index) => (
                                     <Chip
                                         key={index}
                                         label={status.label}

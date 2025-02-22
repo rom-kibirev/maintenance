@@ -4,14 +4,16 @@
 /node_modules
 /.pnp
 .pnp.js
+/api/.idea
+/api/venv
 
 # testing
 /coverage
 
 #fakedata
+/src/components/Goods/data1C
+/src/components/Goods/goods
 /public/data/api_v2/goods
-/api/.idea
-/api/venv
 /api/temp
 
 # production

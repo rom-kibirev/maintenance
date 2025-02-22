@@ -1,10 +1,22 @@
-import { Alert, Box, Button, FormControlLabel, Switch, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, FormControlLabel, Switch, TextField } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import BasicModal from "../UI/ModalTemplate";
 import { patchCategories } from "../../requests/api_v2";
-import FindCategories from "../UI/FindCategory";
 import UnpublishedRoundedIcon from '@mui/icons-material/UnpublishedRounded';
+
+const transliterate = (text) => {
+    const mapping = {
+        "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "yo", "ж": "zh",
+        "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m", "н": "n", "о": "o",
+        "п": "p", "р": "r", "с": "s", "т": "t", "у": "u", "ф": "f", "х": "kh", "ц": "ts",
+        "ч": "ch", "ш": "sh", "щ": "shch", "ъ": "", "ы": "y", "ь": "", "э": "e", "ю": "yu", "я": "ya"
+    };
+    return text.toLowerCase().split('').map(char => mapping[char] || char).join('')
+        .replace(/[^a-z0-9-]/g, '-')
+        .replace(/-+/g, '-');
+};
+
 
 export default function EditCategories({ data, chosenCategory, token, unselectCategory }) {
     const [selected, setSelected] = useState(null);
@@ -20,6 +32,7 @@ export default function EditCategories({ data, chosenCategory, token, unselectCa
 
     const names = [
         { label: "ID", key: "ID", value: true },
+        { label: "CODE", key: "CODE", value: true },
         { label: "Родитель", key: "IBLOCK_SECTION_ID", edit: true, info: "parent" },
         { label: "GUID родителя", key: "XML_PARENT_ID", value: true },
         { label: "GUID", key: "XML_ID", value: true },
@@ -28,11 +41,27 @@ export default function EditCategories({ data, chosenCategory, token, unselectCa
         { label: "Сортировка", key: "SORT", edit: true }
     ];
 
+    const generateUniqueCode = (baseCode) => {
+        let code = `${baseCode}`;
+        let counter = 1;
+        while (data.some(category => category.CODE === baseCode)) {
+            code = `${baseCode}-${counter}`;
+            counter++;
+        }
+        return code;
+    };
+
     const handleChange = (value, key) => {
         const patchData = async (updatedValue) => {
-            const updatedSelected = { ...selected, [key]: updatedValue };
-            setSelected(updatedSelected);
-            const answerPatch = await patchCategories(token, [updatedSelected]);
+            let updatedCategory = { ...selected, [key]: updatedValue };
+
+            if (key === "NAME") {
+                const newCode = generateUniqueCode(transliterate(updatedValue));
+                updatedCategory = { ...updatedCategory, CODE: newCode };
+            }
+
+            setSelected(updatedCategory);
+            const answerPatch = await patchCategories(token, [updatedCategory]);
 
             if (answerPatch.success) {
                 setAnswer({
@@ -40,43 +69,15 @@ export default function EditCategories({ data, chosenCategory, token, unselectCa
                     severity: 'success',
                 });
             } else {
-                window.location.reload(); // Можно заменить на более "мягкий" способ обновления
+                window.location.reload();
             }
 
             setIsEdit(null);
         };
 
-        if (key === "ACTIVE") {
+        if (key === "NAME" || key === "SORT") {
             setIsEdit({
-                title: "Подтвердите изменение активности",
-                content: (
-                    <Box>
-                        <Alert severity="warning">
-                            Вы собираетесь изменить статус активности. Подтвердите действие.
-                        </Alert>
-                        <Box display="flex" justifyContent="space-between" mt={2}>
-                            <Button
-                                variant="contained"
-                                color="success"
-                                onClick={() => patchData(!value)}
-                            >
-                                Подтвердить
-                            </Button>
-                            <Button
-                                variant="contained"
-                                color="error"
-                                onClick={() => setIsEdit(null)}
-                            >
-                                Отменить
-                            </Button>
-                        </Box>
-                    </Box>
-                ),
-            });
-        }
-        else if (key === "SORT") {
-            setIsEdit({
-                title: "Изменить сортировку",
+                title: `Изменить ${key === "NAME" ? "название" : "сортировку"}`,
                 content: (
                     <form
                         onSubmit={(e) => {
@@ -85,9 +86,9 @@ export default function EditCategories({ data, chosenCategory, token, unselectCa
                             patchData(updatedValue);
                         }}
                     >
-                        <Alert severity="info">Текущая сортировка: {value}</Alert>
+                        <Alert severity="info">Текущее значение: {value}</Alert>
                         <TextField
-                            label="Новое значение сортировки"
+                            label={key === "NAME" ? "Новое название" : "Новое значение сортировки"}
                             variant="outlined"
                             defaultValue={value || ""}
                             name={key}
@@ -109,46 +110,6 @@ export default function EditCategories({ data, chosenCategory, token, unselectCa
                 ),
             });
         }
-        if (key === "IBLOCK_SECTION_ID") {
-
-
-            const handleCategoryClick = (category) => {
-                setIsEdit({
-                    title: "Подтвердите действие",
-                    content: (
-                        <Box>
-                            <Alert severity="warning">
-                                Вы собираетесь изменить родительскую категорию на "{category.NAME}". Подтвердите действие.
-                            </Alert>
-                            <Box display="flex" justifyContent="space-between" mt={2}>
-                                <Button
-                                    variant="contained"
-                                    color="success"
-                                    onClick={() => patchData(category.ID)}
-                                >
-                                    Подтвердить
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    color="error"
-                                    onClick={() => setIsEdit(null)}
-                                >
-                                    Отменить
-                                </Button>
-                            </Box>
-                        </Box>
-                    ),
-                });
-            };
-
-            setIsEdit({
-                title: "Изменить родительскую категорию",
-                content: (<FindCategories
-                    data={data}
-                    handleCategoryClick={handleCategoryClick}
-                />),
-            });
-        }
     };
 
     if (selected) return (
@@ -161,7 +122,15 @@ export default function EditCategories({ data, chosenCategory, token, unselectCa
             >
                 {isEdit?.content}
             </BasicModal>}
-            <Typography variant='h3'>{selected.NAME}</Typography>
+            {/*<Typography variant='h3'>{selected.NAME}</Typography>*/}
+            <Button
+                variant="contained"
+                color="warning"
+                onClick={() => handleChange(selected.NAME, "NAME")}
+                startIcon={<EditRoundedIcon />}
+            >
+                {selected.NAME}
+            </Button>
             <Box className={`bg-black/10 flex flex-row flex-wrap gap-2 rounded`}>
                 <Button
                     color="success"
