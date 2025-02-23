@@ -4,7 +4,7 @@ import PrintGoods from "../Search/PrintGoods";
 import { FixedSizeGrid } from "react-window";
 import {mergeFeed} from "../UI/global/sortTools";
 
-export default function ProductsList({ goods, isAddImgCategory, feed, isTollsStat, outsSetIsFeed, shortMode, categories, viewmode }) {
+export default function ProductsList({ goods, isAddImgCategory, feed, isTollsStat, outsSetIsFeed, shortMode, categories, viewmode, goods1C }) {
     const [isFeed, setIsFeed] = useState(outsSetIsFeed); // Переключатель "данные из фида"
     const [containerWidth, setContainerWidth] = useState(0); // Для рендеринга сетки
     const containerRef = useRef(null); // Ссылка на контейнер для измерения ширины
@@ -35,9 +35,9 @@ export default function ProductsList({ goods, isAddImgCategory, feed, isTollsSta
         const sortedGoods = goods.sort((a, b) => a.SORT - b.SORT);
         const findGoods = isFeed ? mergeFeed(sortedGoods, feed) : sortedGoods;
 
-        if (categories) categories.forEach(c => {
+        categories?.forEach(c => {
 
-            findGoods.unshift({...c, LINK: c.CODE, PICTURES: [c.PREVIEW_PICTURE], category:true});
+            findGoods.unshift({...c, LINK: c.CODE, PICTURES: [c.PREVIEW_PICTURE], category:true, CATEGORY_NAME: c.NAME});
         })
 
         // console.log('\n sortedGoods', findGoods);
@@ -54,7 +54,7 @@ export default function ProductsList({ goods, isAddImgCategory, feed, isTollsSta
 
         return (
             <div style={style}>
-                <PrintGoods filteredGoods={[sortedGoods[index]]} isFeed={isFeed} shortMode={shortMode} viewmode={viewmode} />
+                <PrintGoods filteredGoods={[sortedGoods[index]]} isFeed={isFeed} shortMode={shortMode} viewmode={viewmode} goods1C={goods1C} />
             </div>
         );
     };

@@ -7,6 +7,12 @@
       <excludeFolder url="file://$MODULE_DIR$/api/temp" />
       <excludeFolder url="file://$MODULE_DIR$/api/venv/Include" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
+      <excludeFolder url="file://$MODULE_DIR$/api/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/api/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/public/api/old" />
+      <excludeFolder url="file://$MODULE_DIR$/public/api/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/public/data/api_v2/goods" />
+      <excludeFolder url="file://$MODULE_DIR$/src/components/Goods/data1C" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

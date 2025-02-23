@@ -1,17 +1,17 @@
 import React from "react";
-import {Box, Typography, Button, IconButton} from "@mui/material";
+import {Box, Typography, Button, IconButton, Alert} from "@mui/material";
 import ImageCarousel from "../UI/ImageCarousel";
 import ShoppingCartRoundedIcon from "@mui/icons-material/ShoppingCartRounded";
 import {countValue} from "../UI/global/templates";
 import {getDeclension} from "../UI/global/sortTools";
 
-export default function ProductCard({ product, isFeed, width, autoplay, shortMode, viewmode }) {
+export default function ProductCard({ product, isFeed, width, autoplay, shortMode, goods1C }) {
 
     const isCategory = product.category;
 
-    const { NAME, PRICE, PICTURES, VENDOR, BRAND, WAREHOUSE, COUNT, LINK } = product;
+    const { NAME, PRICE, PICTURES, VENDOR, BRAND, WAREHOUSE, COUNT, LINK, XML_ID, CATEGORY_NAME } = product;
 
-    const images = PICTURES?.slice(0, shortMode ? 2 : 5) || [null];
+    const images = PICTURES?.filter(p => p)?.length ? PICTURES?.filter(p => p)?.slice(0, shortMode ? 2 : 5) : ['local/templates/runtec/components/bitrix/catalog.section/runtec_v1/images/no_photo.png'];
 
     const countStatus = (COUNT > 0 && COUNT <= 3) ? 1 : (COUNT > 3) ? 2 : 0;
 
@@ -77,7 +77,20 @@ export default function ProductCard({ product, isFeed, width, autoplay, shortMod
                     ><ShoppingCartRoundedIcon /></IconButton>
                 </Box>}
             </Box> :
-            (!isCategory) && <Box sx={{width: width || 'auto'}} className="flex flex-col gap-2">
+            (!isCategory || goods1C) && 
+            <Box sx={{width: width || 'auto'}} className="flex flex-col gap-2">
+
+                {CATEGORY_NAME && <Alert
+                    severity="info"
+                >Категория "{CATEGORY_NAME}"</Alert>}
+
+                {goods1C?.find(g => g.guid === XML_ID) && <Alert
+                    severity="success"
+                    sx={{
+                        fontSize: 10,
+                    }}
+                >Товар в 1C "{goods1C?.find(g => g.guid === XML_ID)?.name}"</Alert>}
+            
                 <a
                     href={`https://runtec-shop.ru/catalog/${LINK}/`}
                     target="_blank"

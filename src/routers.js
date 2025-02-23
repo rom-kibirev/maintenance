@@ -18,6 +18,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import Points from "./components/Points/Points";
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import CategoriesTools1C from "./components/Dash/CategoriesTools1C";
+import GoodsStatistics from "./components/Goods/GoodsStatistics";
 
 export const routers = (token) => ([
     {
@@ -96,6 +97,14 @@ export const routers = (token) => ([
         to: '/categories-tools-1c',
         component: <CategoriesTools1C token={token} />,
         icon: <CategoryRoundedIcon />,
+        falsePrint: true,
+        doubtfully_necessary: true,
+    },
+    {
+        title: 'Просмотр товаров 1C',
+        to: '/categories-goods-statistics',
+        component: <GoodsStatistics token={token} />,
+        icon: <PlumbingRoundedIcon />,
         falsePrint: true,
         doubtfully_necessary: true,
     },

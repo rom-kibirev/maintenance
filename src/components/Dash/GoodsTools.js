@@ -21,6 +21,7 @@ import {brandList} from "../UI/global/templates";
 export default function GoodsTools({token}) {
 
     const [answer, setAnswer] = useState(null);
+    const [inProgress, setInProgress] = useState(false);
     const [categories, setCategories] = useState(null);
     const [goods, setGoods] = useState(null);
     const [feed, setFeed] = useState(null);
@@ -28,7 +29,6 @@ export default function GoodsTools({token}) {
     const [selectedCategory, setSelectedCategory] = useLocalStorage('category', null);
     const [isFeed, setIsFeed] = useState(false);
     const [isSorted, setIsSorted] = useState(false);
-    const [inProgress, setInProgress] = useState(false);
     const [currentMethod, setCurrentMethod] = useLocalStorage('method_goods', null);
     const [isEdit, setIsEdit] = useState(null);
     const [filteredGoods, setFilteredGoods] = useState(null);

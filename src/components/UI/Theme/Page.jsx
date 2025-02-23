@@ -19,7 +19,7 @@ export default function Page(
                 title={label}
                 subtitle={subtitle}
             />
-            <Box className={`grow overflow-y-auto p-5 flex flex-col`}>
+            <Box className={`grow overflow-y-auto p-5 flex flex-col items-start`}>
                 {children}
             </Box>
         </Box>
