@@ -7,7 +7,7 @@ import React from "react";
 export default function GoodToolsPrintCatalog({categories, goods, currentMethod, selectedCategory, setSelectedCategory, feed}) {
 
     return (
-        <Box className="grow flex flex-row gap-2 pt-3">
+        <Box className="grow flex flex-row gap-2 pt-3 w-full">
             {categories?.length > 0 && (<Box className="w-[400px] relative">
                 <CategoriesTree
                     categories={categories}

@@ -27,8 +27,8 @@ export default function GoodsTools({token}) {
     const [feed, setFeed] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
     const [selectedCategory, setSelectedCategory] = useLocalStorage('category', null);
-    const [isFeed, setIsFeed] = useState(false);
-    const [isSorted, setIsSorted] = useState(false);
+    const [isFeed, setIsFeed] = useLocalStorage("isFeed",false);
+    const [isSorted, setIsSorted] = useLocalStorage("isSorted",false);
     const [currentMethod, setCurrentMethod] = useLocalStorage('method_goods', null);
     const [isEdit, setIsEdit] = useState(null);
     const [filteredGoods, setFilteredGoods] = useState(null);
@@ -49,14 +49,21 @@ export default function GoodsTools({token}) {
                 setCategories(categories);
                 if (goods?.length && feed?.length) {
 
+                    const goodsWithCategory = goods.map(good => {
+                        const CATEGORY = categories?.find(category => category.ID === good.CATEGORY_ID);
+                        return { ...good, CATEGORY };
+                    });
+
+                    // console.log(`\n goodsWithCategory`, goodsWithCategory);
+
                     const filterGoods = () => {
 
                         const categoriesId = currentMethod === 1 ? [selectedCategory] : [selectedCategory, ...getCategoryDescendants(selectedCategory, categories)];
 
-                        return goods?.filter(good => categoriesId?.includes(good?.CATEGORY_ID));
+                        return goodsWithCategory?.filter(good => categoriesId?.includes(good?.CATEGORY_ID));
                     }
 
-                    const currentGoods = selectedCategory ? filterGoods() : goods;
+                    const currentGoods = selectedCategory ? filterGoods() : goodsWithCategory;
                     const feedGoods = isFeed ? mergeFeed(currentGoods, feed) : currentGoods;
                     const sortedGoods = (feedGoods?.length && isSorted) ? sortProductsByBrand(feedGoods) : feedGoods;
 
@@ -135,7 +142,7 @@ export default function GoodsTools({token}) {
     };
 
     console.log(`%c@Алексей: Параметры категорий и товаров`, 'color: rgb(100,255,0); font-size: 24px;', {"Категории": categories, "Товары": goods});
-    // console.log(`\n selectedCategory`, selectedCategory);
+    // console.log(`\n selectedCategory`, categories?.find( c => c.ID === selectedCategory));
 
     const methods = [
         {

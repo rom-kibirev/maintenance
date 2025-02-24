@@ -49,12 +49,14 @@ export default function CatalogView () {
                     title='Карточка товара'
                     subtitle='сокращенный вид'
                 />
-                <ProductsList
-                    goods={outProductList}
-                    feed={goodsByFeed}
-                    isTollsStat
-                    viewmode
-                />
+                <Box>
+                    <ProductsList
+                        goods={outProductList}
+                        feed={goodsByFeed}
+                        isTollsStat
+                        viewmode
+                    />
+                </Box>
             </Box>
         </Page>
     );

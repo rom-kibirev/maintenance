@@ -1,4 +1,4 @@
-import { Alert, Box, Button, FormControlLabel, Switch, TextField } from "@mui/material";
+import {Alert, Box, Button, FormControlLabel, MenuItem, Switch, TextField} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import BasicModal from "../UI/ModalTemplate";
@@ -75,25 +75,66 @@ export default function EditCategories({ data, chosenCategory, token, unselectCa
             setIsEdit(null);
         };
 
-        if (key === "NAME" || key === "SORT") {
+        if (key === "ACTIVE") {
+            // Переключаем значение ACTIVE и отправляем обновление
+            patchData(!value);
+        } else if (key === "NAME" || key === "SORT" || key === "IBLOCK_SECTION_ID") {
+            const getTitle = () => {
+                if (key === "NAME") return "название";
+                if (key === "SORT") return "сортировку";
+                if (key === "IBLOCK_SECTION_ID") return "родителя";
+                return key;
+            };
+
             setIsEdit({
-                title: `Изменить ${key === "NAME" ? "название" : "сортировку"}`,
+                title: `Изменить ${getTitle()}`,
                 content: (
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
                             const updatedValue = e.target.elements[key].value;
-                            patchData(updatedValue);
+                            // Преобразуем в число для IBLOCK_SECTION_ID и SORT
+                            if (key === "IBLOCK_SECTION_ID" || key === "SORT") {
+                                patchData(updatedValue ? parseInt(updatedValue, 10) : null);
+                            } else {
+                                patchData(updatedValue);
+                            }
                         }}
                     >
                         <Alert severity="info">Текущее значение: {value}</Alert>
-                        <TextField
-                            label={key === "NAME" ? "Новое название" : "Новое значение сортировки"}
-                            variant="outlined"
-                            defaultValue={value || ""}
-                            name={key}
-                            fullWidth
-                        />
+                        {key === "IBLOCK_SECTION_ID" ? (
+                            <TextField
+                                select
+                                label="Выберите родителя"
+                                variant="outlined"
+                                defaultValue={value || ""}
+                                name={key}
+                                fullWidth
+                            >
+                                <MenuItem value="">Нет родителя</MenuItem>
+                                {data
+                                    .filter(cat => cat.ID !== selected.ID) // Исключаем текущую категорию
+                                    .map(category => (
+                                        <MenuItem key={category.ID} value={category.ID}>
+                                            {category.NAME}
+                                        </MenuItem>
+                                    ))
+                                }
+                            </TextField>
+                        ) : (
+                            <TextField
+                                label={
+                                    key === "NAME"
+                                        ? "Новое название"
+                                        : "Новое значение сортировки"
+                                }
+                                variant="outlined"
+                                defaultValue={value || ""}
+                                name={key}
+                                type={key === "SORT" ? "number" : "text"}
+                                fullWidth
+                            />
+                        )}
                         <Box display="flex" justifyContent="space-between" mt={2}>
                             <Button type="submit" variant="contained" color="secondary">
                                 Сохранить

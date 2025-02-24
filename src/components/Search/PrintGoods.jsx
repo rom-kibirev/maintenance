@@ -7,24 +7,24 @@ import debounce from "lodash.debounce";
 export default function PrintGoods ({filteredGoods, isFeed, shortMode, viewmode, goods1C}) {
 
     const [columns, setColumns] = useState(5);
-    const cardHeight = 400;
+    // const cardHeight = 700;
 
     const containerRef = useRef();
     const getRowHeight = (index) => {
-        const itemsPerRow = columns;
-        const startIndex = index * itemsPerRow;
-        const endIndex = startIndex + itemsPerRow;
-        const rowItems = filteredGoods?.slice(startIndex, endIndex);
+        // const itemsPerRow = columns;
+        // const startIndex = index * itemsPerRow;
+        // const endIndex = startIndex + itemsPerRow;
+        // const rowItems = filteredGoods?.slice(startIndex, endIndex);
 
         // Определяем максимальную высоту контента в строке
-        const rowHeights = rowItems?.map((item) => {
-            // const contentHeight = cardHeight; // Примерная высота карточки
-            return cardHeight;
-        });
+        // const rowHeights = rowItems?.map((item) => {
+        //     // const contentHeight = cardHeight; // Примерная высота карточки
+        //     return cardHeight;
+        // });
 
         // console.log('\n rowHeights', rowHeights, rowItems);
 
-        if (rowHeights > 0) return Math.max(...rowHeights);
+        // if (rowHeights > 0) return Math.max(...rowHeights);
     };
 
     useEffect(() => {

@@ -9,11 +9,13 @@ export default function ProductCard({ product, isFeed, width, autoplay, shortMod
 
     const isCategory = product.category;
 
-    const { NAME, PRICE, PICTURES, VENDOR, BRAND, WAREHOUSE, COUNT, LINK, XML_ID, CATEGORY_NAME } = product;
+    const { NAME, PRICE, PICTURES, VENDOR, BRAND, WAREHOUSE, COUNT, LINK, XML_ID, CATEGORY } = product;
 
     const images = PICTURES?.filter(p => p)?.length ? PICTURES?.filter(p => p)?.slice(0, shortMode ? 2 : 5) : ['local/templates/runtec/components/bitrix/catalog.section/runtec_v1/images/no_photo.png'];
 
     const countStatus = (COUNT > 0 && COUNT <= 3) ? 1 : (COUNT > 3) ? 2 : 0;
+
+    if (CATEGORY) console.log(`\n CATEGORY`, CATEGORY);
 
     return (
         shortMode ?
@@ -80,9 +82,15 @@ export default function ProductCard({ product, isFeed, width, autoplay, shortMod
             (!isCategory || goods1C) && 
             <Box sx={{width: width || 'auto'}} className="flex flex-col gap-2">
 
-                {CATEGORY_NAME && <Alert
-                    severity="info"
-                >Категория "{CATEGORY_NAME}"</Alert>}
+                {CATEGORY?.NAME && <Alert
+                    severity={CATEGORY?.ACTIVE ? "success" : "error"}
+                    sx={{
+                        position: 'absolute',
+                        zIndex: 1999,
+                        width: 250,
+                        opacity: 0.8,
+                    }}
+                >Категория "{CATEGORY?.NAME}"</Alert>}
 
                 {goods1C?.find(g => g.guid === XML_ID) && <Alert
                     severity="success"
