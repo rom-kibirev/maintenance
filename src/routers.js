@@ -17,8 +17,14 @@ import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import PeopleIcon from '@mui/icons-material/People';
 import Points from "./components/Points/Points";
 import WarehouseIcon from '@mui/icons-material/Warehouse';
-import CategoriesTools1C from "./components/Dash/CategoriesTools1C";
-import GoodsStatistics from "./components/Goods/GoodsStatistics";
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import CategoriesComparison from "./components/Categories/CategoriesAnalizeSite1C";
+import GoodsWithoutCategory from "./components/Goods/FindCategoriesForGoods";
+import GoodsAnalysisSite1C from "./components/Goods/GoodsAnalysisSite1C";
+import DisabledGoodsManager from "./components/Goods/DisabledGoodsManager";
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import Goods1CDuplicates from "./components/Goods/Goods1CDuplicates";
+import LooksTwoIcon from '@mui/icons-material/LooksTwo';
 
 export const routers = (token) => ([
     {
@@ -93,19 +99,39 @@ export const routers = (token) => ([
         doubtfully_necessary: true,
     },
     {
-        title: 'Просмотр категорий 1C',
-        to: '/categories-tools-1c',
-        component: <CategoriesTools1C token={token} />,
-        icon: <CategoryRoundedIcon />,
-        falsePrint: true,
-        doubtfully_necessary: true,
+        title: 'Анализ товаров',
+        to: '/goods-analysis',
+        description: 'Комплексный анализ товаров из разных источников (API, сайт, 1С, фид)',
+        worked: 'Сравнение товаров, анализ расхождений, статистика по категориям и брендам',
+        icon: <AnalyticsIcon />,
+        component: <GoodsAnalysisSite1C token={token} />,
     },
     {
-        title: 'Просмотр товаров 1C',
-        to: '/categories-goods-statistics',
-        component: <GoodsStatistics token={token} />,
+        title: 'Анализ категорий',
+        to: '/category-analysis',
+        description: 'Анализ категорий с подсветкой и экспортом в XLSX',
+        icon: <CategoryRoundedIcon />,
+        component: <CategoriesComparison token={token} />,
+    },
+    {
+        title: 'Исправление товаров',
+        to: '/find-category-goods',
+        // description: 'Анализ категорий с подсветкой и экспортом в XLSX',
         icon: <PlumbingRoundedIcon />,
-        falsePrint: true,
-        doubtfully_necessary: true,
+        component: <GoodsWithoutCategory token={token} />,
+    },
+    {
+        title: 'Отключенные товары',
+        to: '/disabled-goods',
+        description: 'Управление отключенными товарами на сайте',
+        worked: 'Просмотр и массовое включение отключенных товаров',
+        icon: <VisibilityOffIcon />,
+        component: <DisabledGoodsManager token={token} />,
+    },
+    {
+        title: 'Дубли товаров в 1С',
+        to: '/goods-1c-duplicates',
+        icon: <LooksTwoIcon />,
+        component: <Goods1CDuplicates token={token} />,
     },
 ]);

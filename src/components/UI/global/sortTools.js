@@ -3,58 +3,176 @@ import axios from "axios";
 import {brandList} from "./templates";
 import * as XLSX from 'xlsx';
 
+// Функция для получения товаров с сайта и из 1С с отслеживанием прогресса
+export async function fetchAllGoods(onProgress, token) {
+    try {
+        // Загрузка категорий
+        onProgress?.({
+            stage: 'categories',
+            status: 'Загрузка категорий...'
+        });
+
+        const categoriesResponse = await fetchCategories(token);
+        const categories = categoriesResponse || [];
+
+        onProgress?.({
+            stage: 'categories',
+            status: `Загружено категорий: ${categories.length}`
+        });
+
+        // Загрузка товаров с сайта
+        let partNumber = 1;
+        const allGoods = new Map();
+        
+        while (true) {
+            try {
+                onProgress?.({
+                    stage: 'site',
+                    currentPart: partNumber,
+                    status: `Загрузка товаров с сайта (часть ${partNumber})...`
+                });
+
+                const response = await axios.get(`./data/api_v2/goods/all_products_part_${partNumber}.json`);
+                const data = response.data;
+                
+                if (data && Array.isArray(data)) {
+                    data.forEach((good) => {
+                        if (!allGoods.has(good.ID)) {
+                            allGoods.set(good.ID, good);
+                        }
+                    });
+                    
+                    onProgress?.({
+                        stage: 'site',
+                        currentPart: partNumber,
+                        siteGoods: allGoods.size,
+                        status: `Загружена часть ${partNumber} с сайта, всего товаров: ${allGoods.size}`
+                    });
+
+                    partNumber++;
+                } else {
+                    break;
+                }
+            } catch (error) {
+                break;
+            }
+        }
+
+        const siteGoods = [...allGoods.values()];
+
+        // Загрузка товаров из 1С
+        onProgress?.({
+            stage: '1c',
+            currentPart: 0,
+            siteGoods: siteGoods.length,
+            status: 'Начинаем загрузку товаров из 1С...'
+        });
+
+        const allGoods1C = new Map();
+        partNumber = 1;
+        
+        while (true) {
+            try {
+                onProgress?.({
+                    stage: '1c',
+                    currentPart: partNumber,
+                    siteGoods: siteGoods.length,
+                    status: `Загрузка товаров из 1С (часть ${partNumber})...`
+                });
+
+                const response = await axios.get(`/data/1c_goods/goods_part_${partNumber}.json`);
+                const data = response.data;
+                
+                if (data && Array.isArray(data)) {
+                    data.forEach((good) => {
+                        if (!allGoods1C.has(good.guid)) {
+                            allGoods1C.set(good.guid, good);
+                        }
+                    });
+                    
+                    onProgress?.({
+                        stage: '1c',
+                        currentPart: partNumber,
+                        siteGoods: siteGoods.length,
+                        totalItems: allGoods1C.size,
+                        status: `Загружена часть ${partNumber} из 1С, всего товаров: ${allGoods1C.size}`
+                    });
+
+                    partNumber++;
+                } else {
+                    break;
+                }
+            } catch (error) {
+                onProgress?.({
+                    stage: '1c',
+                    currentPart: partNumber,
+                    siteGoods: siteGoods.length,
+                    totalItems: allGoods1C.size,
+                    status: `Загрузка завершена, товаров из 1С: ${allGoods1C.size}`
+                });
+                break;
+            }
+        }
+
+        const goods1C = [...allGoods1C.values()];
+
+        return {
+            categories,
+            siteGoods,
+            goods1C
+        };
+    } catch (error) {
+        console.error('Ошибка при загрузке данных:', error);
+        throw error;
+    }
+}
+
 // Функция для получения товаров
 export async function fetchGoodsData(token) {
     try {
         // Получаем категории
         const categories = await fetchCategories(token);
 
-        const lastFileNumber = 24;
-
-        // Загружаем части товаров
-        const filePromises = Array.from({ length: lastFileNumber }, (_, i) => {
-            const fileName = `all_products_part_${i + 1}.json`;
-            return axios
-                .get(`./data/api_v2/goods/${fileName}`)
-                .then((response) => response.data)
-                .catch((error) => {
-                    console.log(`Ошибка при загрузке ${fileName}:`, error);
-                    return null;
-                });
-        });
-
-        const responses = await Promise.all(filePromises);
+        // Загружаем все части товаров
         const allGoods = new Map();
-
-        // console.log(`\n `, {
-        //     responses,
-        //     allGoods,
-        // });
-
-        // Объединяем данные из частей
-        responses.forEach((response) => {
-            if (response) {
-                response.forEach((good) => {
-                    if (!allGoods.has(good.ID)) {
-                        allGoods.set(good.ID, good);
-                    }
-                });
+        let partNumber = 1;
+        
+        while (true) {
+            try {
+                const fileName = `all_products_part_${partNumber}.json`;
+                const response = await axios.get(`./data/api_v2/goods/${fileName}`);
+                const data = response.data;
+                
+                if (data && Array.isArray(data)) {
+                    data.forEach((good) => {
+                        if (!allGoods.has(good.ID)) {
+                            allGoods.set(good.ID, good);
+                        }
+                    });
+                    console.log(`Загружена часть ${partNumber}, добавлено ${data.length} товаров, всего: ${allGoods.size}`);
+                    partNumber++;
+                } else {
+                    console.error(`Некорректные данные в файле ${fileName}`);
+                    break;
+                }
+            } catch (error) {
+                console.log(`Загрузка завершена на части ${partNumber}, всего загружено товаров: ${allGoods.size}`);
+                break; // Прерываем загрузку при первой ошибке
             }
-        });
+        }
 
         // Загружаем данные фида
         const feed = await axios
             .get(`./data/api_v2/goods/products.json`)
             .then((response) => response.data)
             .catch((error) => {
-                console.log(`Ошибка при загрузке feed data`, error);
+                console.error(`Ошибка при загрузке feed data:`, error);
                 return [];
-            })
-        ;
+            });
 
         // Обрабатываем товары
         const goods = [...allGoods.values()]
-            .map((g, i) => {
+            .map((g) => {
                 const pictures = g.PICTURES ? [g.PREVIEW_PICTURE, ...g.PICTURES] : [g.PREVIEW_PICTURE];
                 const categoryGoods = categories.find(c => c.ID === g.CATEGORY_ID);
 
@@ -63,8 +181,7 @@ export async function fetchGoodsData(token) {
                     PICTURES: pictures,
                     LINK: `${categoryGoods?.CODE}/${g.CODE}`
                 };
-            })
-        ;
+            });
 
         return { categories, goods, feed };
     } catch (error) {

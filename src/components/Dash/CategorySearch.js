@@ -6,6 +6,8 @@ export default function CategorySearch({ categories, setSelectedCategory }) {
     const [filteredCategories, setFilteredCategories] = useState([]);
 
     useEffect(() => {
+        if (!categories) return;
+        
         if (searchTerm) {
             const filtered = categories.filter(category =>
                 category.NAME.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -18,7 +20,7 @@ export default function CategorySearch({ categories, setSelectedCategory }) {
     }, [searchTerm, categories]);
 
     const handleCategorySelect = (event, value) => {
-        if (value) setSelectedCategory(value.ID);
+        if (value) setSelectedCategory(value);
     };
 
     return (

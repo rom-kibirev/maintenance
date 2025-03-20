@@ -10,7 +10,7 @@ import {checkAccess} from "../UI/global/userStatus";
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import BasicModal from "../UI/ModalTemplate";
-import FindCategories from "../UI/FindCategory";
+import CategorySearch from "./CategorySearch";
 import useLocalStorage from "../UI/global/useLocalStorage";
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import GoodToolsPrintCatalog from "./GoodToolsPrintCatalog";
@@ -166,14 +166,12 @@ export default function GoodsTools({token}) {
     ];
     const current = methods[currentMethod];
     const transferGoodsHandler = () => {
-
         const transferGoods = (category) => {
-
             const updatedGoods = goods?.map(good => {
                 return {
                     ...good,
-                    CATEGORY_ID: category.ID,
-                    CATEGORY_XML_ID: category.XML_ID,
+                    // CATEGORY_ID: category.ID,
+                    // CATEGORY_XML_ID: category.XML_ID,
                     IS_MODIFIED_ON_SITE: true,
                 }
             });
@@ -204,41 +202,19 @@ export default function GoodsTools({token}) {
                     </Box>
                 ),
             });
-
-            // setIsEdit({
-            //     title: "Подтвердите действие",
-            //     content: (
-            //         <Box>
-            //             <Alert severity="warning">
-            //                 Вы собираетесь изменить родительскую категорию на "{category.NAME}". Подтвердите действие.
-            //             </Alert>
-            //             <Box display="flex" justifyContent="space-between" mt={2}>
-            //                 <Button
-            //                     variant="contained"
-            //                     color="success"
-            //                     onClick={() => patchData(category.ID)}
-            //                 >
-            //                     Подтвердить
-            //                 </Button>
-            //                 <Button
-            //                     variant="contained"
-            //                     color="error"
-            //                     onClick={() => setIsEdit(null)}
-            //                 >
-            //                     Отменить
-            //                 </Button>
-            //             </Box>
-            //         </Box>
-            //     ),
-            // });
         };
 
         setIsEdit({
             title: "Перенести товары в другую категорию",
-            content: (<FindCategories
-                data={categories}
-                handleCategoryClick={transferGoods}
-            />),
+            content: (
+                <Box>
+                    <input type="hidden" id="transfer-category-input" />
+                    <CategorySearch
+                        categories={categories}
+                        setSelectedCategory={transferGoods}
+                    />
+                </Box>
+            ),
         });
     }
 

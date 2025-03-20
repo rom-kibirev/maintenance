@@ -103,7 +103,11 @@ export default function CategoriesTools ({ token }) {
                 />
                 <CategorySearch
                     categories={categories || []}
-                    setSelectedCategory={setSelectedCategory}
+                    setSelectedCategory={(category) => {
+
+                        // console.log(`\n `, category);
+                        setSelectedCategory(category.ID);
+                    }}
                 />
                 {editContentUsers.includes(currentUser?.user_id) && <Button
                     color="error"

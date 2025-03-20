@@ -15,7 +15,7 @@ export default function ProductCard({ product, isFeed, width, autoplay, shortMod
 
     const countStatus = (COUNT > 0 && COUNT <= 3) ? 1 : (COUNT > 3) ? 2 : 0;
 
-    if (CATEGORY) console.log(`\n CATEGORY`, CATEGORY);
+    // if (CATEGORY) console.log(`\n CATEGORY`, CATEGORY);
 
     return (
         shortMode ?

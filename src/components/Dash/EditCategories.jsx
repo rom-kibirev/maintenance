@@ -1,9 +1,10 @@
-import {Alert, Box, Button, FormControlLabel, MenuItem, Switch, TextField} from "@mui/material";
+import {Alert, Box, Button, FormControlLabel, Switch, TextField} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import BasicModal from "../UI/ModalTemplate";
 import { patchCategories } from "../../requests/api_v2";
 import UnpublishedRoundedIcon from '@mui/icons-material/UnpublishedRounded';
+import CategorySearch from "./CategorySearch";
 
 const transliterate = (text) => {
     const mapping = {
@@ -76,7 +77,6 @@ export default function EditCategories({ data, chosenCategory, token, unselectCa
         };
 
         if (key === "ACTIVE") {
-            // Переключаем значение ACTIVE и отправляем обновление
             patchData(!value);
         } else if (key === "NAME" || key === "SORT" || key === "IBLOCK_SECTION_ID") {
             const getTitle = () => {
@@ -92,42 +92,34 @@ export default function EditCategories({ data, chosenCategory, token, unselectCa
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
-                            const updatedValue = e.target.elements[key].value;
-                            // Преобразуем в число для IBLOCK_SECTION_ID и SORT
-                            if (key === "IBLOCK_SECTION_ID" || key === "SORT") {
-                                patchData(updatedValue ? parseInt(updatedValue, 10) : null);
+                            if (key === "IBLOCK_SECTION_ID") {
+                                const formData = new FormData(e.target);
+                                const parentId = formData.get(key);
+                                patchData(parentId ? parseInt(parentId, 10) : null);
                             } else {
-                                patchData(updatedValue);
+                                const updatedValue = e.target.elements[key].value;
+                                if (key === "SORT") {
+                                    patchData(updatedValue ? parseInt(updatedValue, 10) : null);
+                                } else {
+                                    patchData(updatedValue);
+                                }
                             }
                         }}
                     >
                         <Alert severity="info">Текущее значение: {value}</Alert>
                         {key === "IBLOCK_SECTION_ID" ? (
-                            <TextField
-                                select
-                                label="Выберите родителя"
-                                variant="outlined"
-                                defaultValue={value || ""}
-                                name={key}
-                                fullWidth
-                            >
-                                <MenuItem value="">Нет родителя</MenuItem>
-                                {data
-                                    .filter(cat => cat.ID !== selected.ID) // Исключаем текущую категорию
-                                    .map(category => (
-                                        <MenuItem key={category.ID} value={category.ID}>
-                                            {category.NAME}
-                                        </MenuItem>
-                                    ))
-                                }
-                            </TextField>
+                            <Box>
+                                <input type="hidden" name={key} value="" id="parent-category-input" />
+                                <CategorySearch
+                                    categories={data.filter(cat => cat.ID !== selected.ID)}
+                                    setSelectedCategory={(category) => {
+                                        document.getElementById('parent-category-input').value = category.ID;
+                                    }}
+                                />
+                            </Box>
                         ) : (
                             <TextField
-                                label={
-                                    key === "NAME"
-                                        ? "Новое название"
-                                        : "Новое значение сортировки"
-                                }
+                                label={key === "NAME" ? "Новое название" : "Новое значение сортировки"}
                                 variant="outlined"
                                 defaultValue={value || ""}
                                 name={key}
