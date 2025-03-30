@@ -497,3 +497,123 @@ export async function uploadCategories_v2(token, data) {
         };
     }
 }
+
+export const fetchGoodsPrices = async (token) => {
+    try {
+        // Первый запрос для получения информации о страницах и данных первой страницы
+        const firstResponse = await axios.get(
+            `${api}/goods/prices?type=short&page=1`,
+            headersRequests('get', token)
+        );
+
+        const { count, total_count, data: firstPageData } = firstResponse.data;
+        const totalPages = Math.ceil(total_count / count);
+        let allPricesData = [...firstPageData];
+
+        // Последовательный запрос для каждой страницы начиная со 2-ой
+        for (let page = 2; page <= totalPages; page++) {
+            try {
+                const response = await axios.get(
+                    `${api}/goods/prices?type=short&page=${page}`,
+                    headersRequests('get', token)
+                );
+
+                allPricesData = allPricesData.concat(response.data.data);
+                
+                // Добавляем небольшую задержку между запросами
+                if (page < totalPages) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            } catch (error) {
+                console.error(`Ошибка при загрузке страницы цен ${page}:`, error.response ? error.response.data : error.message);
+                return {
+                    success: false,
+                    message: `Ошибка при загрузке страницы цен ${page}: ${error.message}`,
+                };
+            }
+        }
+
+        return {
+            success: true,
+            data: allPricesData,
+        };
+
+    } catch (error) {
+        console.error('fetchGoodsPrices:', error.response ? error.response.data : error.message);
+        return {
+            success: false,
+            message: error?.response?.data?.errors?.map((e, i) => `fetchGoodsPrices - attr: ${e.attr} detail: ${e.detail} code: ${e.code}`)
+        };
+    }
+};
+
+export const fetchGoodsQuantity = async (token) => {
+    try {
+        // Первый запрос для получения информации о страницах и данных первой страницы
+        const firstResponse = await axios.get(
+            `${api}/goods/quantity?type=short&page=1`,
+            headersRequests('get', token)
+        );
+
+        const { count, total_count, data: firstPageData } = firstResponse.data;
+        const totalPages = Math.ceil(total_count / count);
+        let allQuantityData = [...firstPageData];
+
+        // Последовательный запрос для каждой страницы начиная со 2-ой
+        for (let page = 2; page <= totalPages; page++) {
+            try {
+                const response = await axios.get(
+                    `${api}/goods/quantity?type=short&page=${page}`,
+                    headersRequests('get', token)
+                );
+
+                allQuantityData = allQuantityData.concat(response.data.data);
+                
+                // Добавляем небольшую задержку между запросами
+                if (page < totalPages) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            } catch (error) {
+                console.error(`Ошибка при загрузке страницы остатков ${page}:`, error.response ? error.response.data : error.message);
+                return {
+                    success: false,
+                    message: `Ошибка при загрузке страницы остатков ${page}: ${error.message}`,
+                };
+            }
+        }
+
+        return {
+            success: true,
+            data: allQuantityData,
+        };
+
+    } catch (error) {
+        console.error('fetchGoodsQuantity:', error.response ? error.response.data : error.message);
+        return {
+            success: false,
+            message: error?.response?.data?.errors?.map((e, i) => `fetchGoodsQuantity - attr: ${e.attr} detail: ${e.detail} code: ${e.code}`)
+        };
+    }
+};
+
+export const fetchLocations = async (token, type = '', page = 1) => {
+    try {
+        const response = await axios.get(
+            `${api}/locations?type=${type}&page=${page}`,
+            headersRequests('get', token)
+        );
+
+        return {
+            success: true,
+            data: response.data,
+        };
+
+    } catch (error) {
+        console.error('fetchLocations:', error.response ? error.response.data : error.message);
+
+        return {
+            success: false,
+            message: error?.response?.data?.errors?.map((e, i) => `fetchLocations - attr: ${e.attr} detail: ${e.detail} code: ${e.code}`)
+        };
+    }
+};

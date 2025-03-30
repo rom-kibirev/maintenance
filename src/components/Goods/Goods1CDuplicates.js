@@ -4,6 +4,7 @@ import {fetchAllGoods} from "../UI/global/sortTools";
 import {Box, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button} from "@mui/material";
 import * as XLSX from 'xlsx';
 import DownloadIcon from '@mui/icons-material/Download';
+import {isArray} from "chart.js/helpers";
 
 export default function Goods1CDuplicates({ token }) {
     const [goods1C, setGoods1C] = useState([]);
@@ -41,8 +42,20 @@ export default function Goods1CDuplicates({ token }) {
 
         getData();
     }, []);
-    
-    if (goods1C) console.log(`\n goods1C`, goods1C);
+
+    if (goods1C) {
+        const allNames = goods1C.flatMap(g => {
+            if (Array.isArray(g.additional_parameters)) {
+                return g.additional_parameters.map(param => param?.name).filter(name => name != null);
+            } else if (g.additional_parameters && typeof g.additional_parameters === 'object') {
+                return [g.additional_parameters.name].filter(name => name != null);
+            }
+            return [];
+        });
+        const uniqueNames = new Set(allNames);
+
+        console.log(`\n Уникальные имена:`, uniqueNames);
+    }
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);

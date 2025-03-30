@@ -1,11 +1,11 @@
 import Page from "../UI/Theme/Page";
-import { Alert, Box, Button, CircularProgress, FormControlLabel, IconButton, Switch, TextField } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, FormControlLabel, IconButton, Switch, TextField, Dialog, DialogTitle, DialogContent, Typography, List, ListItem, ListItemText } from "@mui/material";
 import React, {useEffect, useState} from "react";
 import BackupTableIcon from '@mui/icons-material/BackupTable';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import {fetchGoodsData, getCategoryDescendants, mergeFeed, sortProductsByBrand} from "../UI/global/sortTools";
-import {fetchUserData, uploadGoods} from "../../requests/api_v2";
+import {fetchUserData, uploadGoods, fetchGoodsPrices, fetchGoodsQuantity} from "../../requests/api_v2";
 import {checkAccess} from "../UI/global/userStatus";
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
@@ -15,7 +15,6 @@ import useLocalStorage from "../UI/global/useLocalStorage";
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import GoodToolsPrintCatalog from "./GoodToolsPrintCatalog";
 import HideSourceIcon from '@mui/icons-material/HideSource';
-import Typography from "@mui/material/Typography";
 import {brandList} from "../UI/global/templates";
 
 export default function GoodsTools({token}) {
@@ -35,63 +34,169 @@ export default function GoodsTools({token}) {
     const [brands, setBrands] = useState(null);
     const [characters, setCharacters] = useState(null);
     const [charactersSelected, setCharactersSelected] = useLocalStorage('character', null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [foundGood, setFoundGood] = useState(null);
+    const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+    const [searchResults, setSearchResults] = useState([]);
+    const [showSearchResults, setShowSearchResults] = useState(false);
+    // const [goodsPrices, setGoodsPrices] = useState(null);
+    // const [goodsQuantity, setGoodsQuantity] = useState(null);
+    const [isLoadingPrices, setIsLoadingPrices] = useState(false);
+    const [isLoadingQuantity, setIsLoadingQuantity] = useState(false);
+    const [loadPricesAndQuantity, setLoadPricesAndQuantity] = useLocalStorage("loadPricesAndQuantity", true);
 
+    // Основной эффект для загрузки всех данных
     useEffect(() => {
+        let isMounted = true;
 
         const getData = async () => {
-
             setInProgress(true);
             setAnswer(null);
 
             try {
+                // Загружаем базовые данные
+                const [goodsData, userData] = await Promise.all([
+                    fetchGoodsData(token),
+                    fetchUserData(token)
+                ]);
 
-                const { categories, goods, feed } = await fetchGoodsData(token);
-                setCategories(categories);
+                if (!isMounted) return;
+
+                const { categories, goods, feed } = goodsData;
+                
                 if (goods?.length && feed?.length) {
-
-                    const goodsWithCategory = goods.map(good => {
+                    // Фильтруем товары без категории
+                    const validGoods = goods.filter(good => good.CATEGORY_ID && good.CATEGORY_ID !== 0);
+                    
+                    // Добавляем информацию о категории
+                    const goodsWithCategory = validGoods.map(good => {
                         const CATEGORY = categories?.find(category => category.ID === good.CATEGORY_ID);
                         return { ...good, CATEGORY };
                     });
 
-                    // console.log(`\n goodsWithCategory`, goodsWithCategory);
+                    // Если включена загрузка цен и остатков
+                    if (loadPricesAndQuantity && !isFeed) {
+                        setIsLoadingPrices(true);
+                        setIsLoadingQuantity(true);
 
-                    const filterGoods = () => {
+                        try {
+                            const [pricesResponse, quantityResponse] = await Promise.all([
+                                fetchGoodsPrices(token),
+                                fetchGoodsQuantity(token)
+                            ]);
 
-                        const categoriesId = currentMethod === 1 ? [selectedCategory] : [selectedCategory, ...getCategoryDescendants(selectedCategory, categories)];
+                            if (!isMounted) return;
 
-                        return goodsWithCategory?.filter(good => categoriesId?.includes(good?.CATEGORY_ID));
+                            if (pricesResponse.success && quantityResponse.success) {
+                                const pricesMap = new Map(pricesResponse.data.map(p => [p.ID, p]));
+                                const quantityMap = new Map(quantityResponse.data.map(q => [q.ID, q]));
+
+                                // Обновляем товары с ценами и остатками
+                                const updatedGoods = goodsWithCategory.map(good => {
+                                    const priceData = pricesMap.get(good.ID);
+                                    const quantityData = quantityMap.get(good.ID);
+                                    
+                                    return {
+                                        ...good,
+                                        PRICE: priceData?.PRICE || 0,
+                                        CURRENCY: priceData?.CURRENCY || good.CURRENCY,
+                                        COUNT: quantityData?.QUANTITY || 0,
+                                        WAREHOUSE: 1
+                                    };
+                                });
+
+                                const feedGoods = isFeed ? mergeFeed(updatedGoods, feed) : updatedGoods;
+                                const sortedGoods = (feedGoods?.length && isSorted) ? sortProductsByBrand(feedGoods) : feedGoods;
+
+                                setGoods(sortedGoods);
+                            }
+                        } catch (error) {
+                            console.error('Ошибка при загрузке цен и остатков:', error);
+                            if (isMounted) {
+                                setAnswer({
+                                    severity: "warning",
+                                    message: `Ошибка при загрузке цен и остатков: ${error.message}`
+                                });
+                            }
+                        } finally {
+                            if (isMounted) {
+                                setIsLoadingPrices(false);
+                                setIsLoadingQuantity(false);
+                            }
+                        }
+                    } else {
+                        // Если загрузка цен и остатков отключена или режим фида
+                        const feedGoods = mergeFeed(goodsWithCategory, feed);
+                        const sortedGoods = isSorted ? sortProductsByBrand(feedGoods) : feedGoods;
+                        setGoods(sortedGoods);
                     }
 
-                    const currentGoods = selectedCategory ? filterGoods() : goodsWithCategory;
-                    const feedGoods = isFeed ? mergeFeed(currentGoods, feed) : currentGoods;
-                    const sortedGoods = (feedGoods?.length && isSorted) ? sortProductsByBrand(feedGoods) : feedGoods;
-
-                    setGoods(sortedGoods);
                     setFeed(feed);
-                    setInProgress(false);
+                    setCategories(categories);
                 }
 
-                const response = await fetchUserData(token);
-                if (response.success) setCurrentUser(response.data);
+                if (userData.success) setCurrentUser(userData.data);
 
             } catch (error) {
                 console.error('Ошибка при загрузке данных:', error);
-                setAnswer({
-                    severity: "error",
-                    message: `Ошибка при загрузке данных: ${error.status}`
-                })
+                if (isMounted) {
+                    setAnswer({
+                        severity: "error",
+                        message: `Ошибка при загрузке данных: ${error.message}`
+                    });
+                }
+            } finally {
+                if (isMounted) {
+                    setInProgress(false);
+                }
             }
         };
 
         getData();
-    }, [token, isFeed, isSorted, selectedCategory, currentMethod]);
+
+        return () => {
+            isMounted = false;
+        };
+    }, [token, isFeed, isSorted, loadPricesAndQuantity]);
+
+    // Эффект для фильтрации по категории
+    const [filteredCategoryGoods, setFilteredCategoryGoods] = useState(null);
+
     useEffect(() => {
-        if (goods?.length && currentMethod === 2) {
-            const updateGoods = [...new Set(goods.filter(b => (!!b.BRAND && b.ACTIVE)))];
-            setFilteredGoods(updateGoods);
-        }
-    }, [currentMethod, goods]);
+        if (!goods) return;
+
+        const filterGoods = () => {
+            if (!selectedCategory) return goods;
+
+            const categoriesId = currentMethod === 1 
+                ? [selectedCategory] 
+                : [selectedCategory, ...getCategoryDescendants(selectedCategory, categories)];
+
+            return goods.filter(good => categoriesId?.includes(good.CATEGORY_ID));
+        };
+
+        setFilteredCategoryGoods(filterGoods());
+    }, [selectedCategory, currentMethod, goods, categories]);
+
+    const currentGoods = (filteredGoods && currentMethod === 2)
+        ? filteredGoods
+        : filteredCategoryGoods || 0
+    ;
+    const currentCategory = categories?.find(c => c.ID === selectedCategory);
+
+    // Удаляем второй useEffect для загрузки цен и остатков
+
+    // Удаляем лишний useEffect для отслеживания состояний
+    // Используем useMemo для тяжелых вычислений
+    const filteredBrands = React.useMemo(() => {
+        if (!goods?.length || currentMethod !== 2) return [];
+        return [...new Set(goods.filter(b => (!!b.BRAND && b.ACTIVE)))];
+    }, [goods, currentMethod]);
+
+    useEffect(() => {
+        setFilteredGoods(filteredBrands);
+    }, [filteredBrands]);
+
     useEffect(() => {
         if (filteredGoods?.length) {
             const allBrands = [...new Set(filteredGoods.map(g => g.BRAND))]
@@ -141,7 +246,7 @@ export default function GoodsTools({token}) {
         console.log(`\n updateGoods`, updateGoods);
     };
 
-    console.log(`%c@Алексей: Параметры категорий и товаров`, 'color: rgb(100,255,0); font-size: 24px;', {"Категории": categories, "Товары": goods});
+    console.log(`%c@Алексей: Параметры категорий и товаров`, 'color: rgb(100,255,0); font-size: 24px;', {"Категории": categories, "Товары": goods, "Отфильтрованные товары": currentGoods});
     // console.log(`\n selectedCategory`, categories?.find( c => c.ID === selectedCategory));
 
     const methods = [
@@ -167,11 +272,9 @@ export default function GoodsTools({token}) {
     const current = methods[currentMethod];
     const transferGoodsHandler = () => {
         const transferGoods = (category) => {
-            const updatedGoods = goods?.map(good => {
+            const updatedGoods = currentGoods?.map(good => {
                 return {
                     ...good,
-                    // CATEGORY_ID: category.ID,
-                    // CATEGORY_XML_ID: category.XML_ID,
                     IS_MODIFIED_ON_SITE: true,
                 }
             });
@@ -205,7 +308,7 @@ export default function GoodsTools({token}) {
         };
 
         setIsEdit({
-            title: "Перенести товары в другую категорию",
+            title: `Перенести товары (${currentGoods?.length}) из категории ${currentCategory?.NAME} в другую`,
             content: (
                 <Box>
                     <input type="hidden" id="transfer-category-input" />
@@ -218,6 +321,51 @@ export default function GoodsTools({token}) {
         });
     }
 
+    const handleSearch = () => {
+        if (!searchQuery.trim()) return;
+        
+        // Проверяем, является ли поисковый запрос числом (для ID)
+        const isNumeric = /^\d+$/.test(searchQuery);
+        
+        const found = goods?.filter(good => {
+            // Точный поиск по ID
+            if (isNumeric && good.ID.toString() === searchQuery) {
+                return true;
+            }
+            // Точный поиск по XML_ID
+            if (good.XML_ID === searchQuery) {
+                return true;
+            }
+            // Частичный поиск по NAME
+            return good.NAME.toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        if (found?.length > 0) {
+            setSearchResults(found);
+            setShowSearchResults(true);
+        } else {
+            setAnswer({
+                severity: "warning",
+                message: "Товары не найдены"
+            });
+        }
+    };
+
+    const handleSelectGood = (good) => {
+        setFoundGood(good);
+        setShowSearchResults(false);
+        setSearchDialogOpen(true);
+    };
+
+    const handleCloseSearchDialog = () => {
+        setSearchDialogOpen(false);
+        setFoundGood(null);
+        setSearchQuery('');
+        setSearchResults([]);
+        setShowSearchResults(false);
+    };
+
+
     return (
         <Page
             label="Управление товарами"
@@ -225,11 +373,39 @@ export default function GoodsTools({token}) {
         >
             {isEdit && <BasicModal open={!!isEdit} handleClose={() => setIsEdit(null)} title={isEdit?.title}>{isEdit?.content}</BasicModal>}
             <Box className={`flex gap-2 p-3 border bg-zinc-900/50 border-amber-500/20 rounded`}>
-                {inProgress && <CircularProgress color="info" size={20} sx={{marginY: "auto"}} />}
+                {(inProgress || isLoadingPrices || isLoadingQuantity) && (
+                    <Box className="flex items-center gap-2">
+                        <CircularProgress color="info" size={20} sx={{marginY: "auto"}} />
+                        {isLoadingPrices && <Typography variant="caption">Загрузка цен...</Typography>}
+                        {isLoadingQuantity && <Typography variant="caption">Загрузка остатков...</Typography>}
+                    </Box>
+                )}
                 {!!answer && (<Alert severity={answer?.severity || "info"}>{answer?.message || ""}</Alert>)}
                 {methods?.map(m => (<IconButton key={m.id} color={currentMethod === m.id ? "primory" : m.color} onClick={() => setCurrentMethod(m.id)} title={m.title}>{m.icon}</IconButton>))}
-                <TextField label='Количество товаров' disabled value={(filteredGoods?.length && currentMethod === 2) ? filteredGoods.length : goods?.length || 0} size="small" sx={{width: 120}} />
-                {!!selectedCategory && <TextField label='Выбранная категория' disabled value={categories?.find(c => c.ID === selectedCategory)?.NAME || ""} size="small" />}
+                <TextField 
+                    label='Поиск товара (ID/NAME/XML_ID)' 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    size="small"
+                    sx={{width: 300}}
+                />
+                <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleSearch}
+                    size="small"
+                >
+                    Найти
+                </Button>
+                <TextField 
+                    label='Количество товаров' 
+                    disabled 
+                    value={currentGoods?.length || 0}
+                    size="small" 
+                    sx={{width: 120}} 
+                />
+                {!!selectedCategory && <TextField label='Выбранная категория' disabled value={currentCategory?.NAME || ""} size="small" />}
                 {current?.id === 0 && <>
                     <FormControlLabel
                         control={
@@ -250,6 +426,16 @@ export default function GoodsTools({token}) {
                             />
                         }
                         label={`Сортировка ${!isSorted ? "с сайта" : "автоматическая"}`}
+                    />
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={loadPricesAndQuantity}
+                                color="primary"
+                                onChange={() => setLoadPricesAndQuantity(!loadPricesAndQuantity)}
+                            />
+                        }
+                        label={`Загрузка цен и остатков ${loadPricesAndQuantity ? "включена" : "отключена"}`}
                     />
                     <Button
                         variant="contained"
@@ -272,7 +458,16 @@ export default function GoodsTools({token}) {
                 </>}
                 {(current?.id === 1 && selectedCategory) && <Button color="warning" variant="contained" onClick={() => transferGoodsHandler()} >Перенести товары в категорию</Button>}
             </Box>
-            {(currentMethod === 0 || currentMethod === 1) && <GoodToolsPrintCatalog categories={categories} goods={goods} currentMethod={currentMethod} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} feed={feed} />}
+            {(currentMethod === 0 || currentMethod === 1) && 
+                <GoodToolsPrintCatalog 
+                    categories={categories} 
+                    goods={filteredCategoryGoods} 
+                    currentMethod={currentMethod} 
+                    selectedCategory={selectedCategory} 
+                    setSelectedCategory={setSelectedCategory} 
+                    feed={feed} 
+                />
+            }
             {(filteredGoods?.length && currentMethod === 2) && <Box className="flex flex-col gap-2 pt-3">
                 <Box size="small" className="flex flex-wrap items-center gap-2">
                     {characters?.map((c, id) => (<Button
@@ -317,6 +512,116 @@ export default function GoodsTools({token}) {
                     </Box>))}
                 </Box>
             </Box>}
+
+            <Dialog 
+                open={showSearchResults} 
+                onClose={() => setShowSearchResults(false)}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle>
+                    Результаты поиска
+                    <Button 
+                        onClick={() => setShowSearchResults(false)}
+                        sx={{ position: 'absolute', right: 8, top: 8 }}
+                    >
+                        ✕
+                    </Button>
+                </DialogTitle>
+                <DialogContent>
+                    <List>
+                        {searchResults.map((good, index) => (
+                            <ListItem 
+                                key={index}
+                                button
+                                onClick={() => handleSelectGood(good)}
+                            >
+                                <ListItemText 
+                                    primary={good.NAME}
+                                    secondary={`ID: ${good.ID} | Артикул: ${good.VENDOR} | Бренд: ${good.BRAND}`}
+                                />
+                            </ListItem>
+                        ))}
+                    </List>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog 
+                open={searchDialogOpen} 
+                onClose={handleCloseSearchDialog}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle>
+                    Информация о товаре
+                    <Button 
+                        onClick={handleCloseSearchDialog}
+                        sx={{ position: 'absolute', right: 8, top: 8 }}
+                    >
+                        ✕
+                    </Button>
+                </DialogTitle>
+                <DialogContent>
+                    {foundGood && (
+                        <List>
+                            <ListItem>
+                                <ListItemText 
+                                    primary="ID" 
+                                    secondary={foundGood.ID}
+                                />
+                            </ListItem>
+                            <ListItem>
+                                <ListItemText 
+                                    primary="Название" 
+                                    secondary={foundGood.NAME}
+                                />
+                            </ListItem>
+                            <ListItem>
+                                <ListItemText 
+                                    primary="XML_ID" 
+                                    secondary={foundGood.XML_ID}
+                                />
+                            </ListItem>
+                            <ListItem>
+                                <ListItemText 
+                                    primary="Артикул" 
+                                    secondary={foundGood.VENDOR}
+                                />
+                            </ListItem>
+                            <ListItem>
+                                <ListItemText 
+                                    primary="Бренд" 
+                                    secondary={foundGood.BRAND}
+                                />
+                            </ListItem>
+                            <ListItem>
+                                <ListItemText 
+                                    primary="Категория" 
+                                    secondary={foundGood.CATEGORY?.NAME}
+                                />
+                            </ListItem>
+                            <ListItem>
+                                <ListItemText 
+                                    primary="Цена" 
+                                    secondary={foundGood.PRICE}
+                                />
+                            </ListItem>
+                            <ListItem>
+                                <ListItemText 
+                                    primary="Количество" 
+                                    secondary={foundGood.COUNT}
+                                />
+                            </ListItem>
+                            <ListItem>
+                                <ListItemText 
+                                    primary="Активность" 
+                                    secondary={foundGood.ACTIVE ? "Да" : "Нет"}
+                                />
+                            </ListItem>
+                        </List>
+                    )}
+                </DialogContent>
+            </Dialog>
         </Page>
     )
 }

@@ -25,6 +25,8 @@ import DisabledGoodsManager from "./components/Goods/DisabledGoodsManager";
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import Goods1CDuplicates from "./components/Goods/Goods1CDuplicates";
 import LooksTwoIcon from '@mui/icons-material/LooksTwo';
+import ResearchWantedGoods from "./components/Goods/ResearchWantedGoods";
+import InventoryIcon from '@mui/icons-material/Inventory';
 
 export const routers = (token) => ([
     {
@@ -133,5 +135,11 @@ export const routers = (token) => ([
         to: '/goods-1c-duplicates',
         icon: <LooksTwoIcon />,
         component: <Goods1CDuplicates token={token} />,
+    },
+    {
+        title: 'Наши товары',
+        to: '/ResearchWantedGoods',
+        icon: <InventoryIcon />,
+        component: <ResearchWantedGoods token={token} />,
     },
 ]);
