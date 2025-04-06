@@ -14,6 +14,8 @@
 /src/components/Goods/data1C
 /src/components/Goods/goods
 /public/data/api_v2/goods
+/public/data/api_v2/prices_data
+/public/data/api_v2/quantity_data
 /public/data/1c_goods
 /api/temp
 
@@ -32,3 +34,4 @@ yarn-debug.log*
 yarn-error.log*
 /public/api/old/
 /public/api/venv/
+/public/data/api_v2/prices_data/

@@ -2,7 +2,7 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import PlumbingRoundedIcon from "@mui/icons-material/PlumbingRounded";
 import RssFeedIcon from '@mui/icons-material/RssFeed';
-import AccountTreeIcon from '@mui/icons-material/AccountTree';
+// import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import React from "react";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import WelcomeUser from "./components/Dash/WelcomeUser";
@@ -10,7 +10,7 @@ import SearchGoods from "./components/Search/SearchGoods";
 import CategoriesTools from "./components/Dash/CategoriesTools";
 import GoodsTools from "./components/Dash/GoodsTools";
 import FeedGoodsDiff from "./components/Dash/FeedGoodsDiff";
-import CatalogView from "./components/Out/CatalogView";
+// import CatalogView from "./components/Out/CatalogView";
 import ViewUsers from "./components/Orders/ViewUsers";
 import ViewAllOrders from "./components/Orders/ViewAllOrders";
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
@@ -27,6 +27,8 @@ import Goods1CDuplicates from "./components/Goods/Goods1CDuplicates";
 import LooksTwoIcon from '@mui/icons-material/LooksTwo';
 import ResearchWantedGoods from "./components/Goods/ResearchWantedGoods";
 import InventoryIcon from '@mui/icons-material/Inventory';
+import GoodsCheckData from "./components/Goods/GoodsCheckData";
+import AirlineSeatReclineExtraIcon from '@mui/icons-material/AirlineSeatReclineExtra';
 
 export const routers = (token) => ([
     {
@@ -68,13 +70,13 @@ export const routers = (token) => ([
         icon: <RssFeedIcon />,
         component: <FeedGoodsDiff token={token} />,
     },
-    {
-        title: 'Каталог товаров ТЗ',
-        to: '/catalog-view',
-        worked: 'Описан в "Обновление UI сайта runtec-shop.ru"',
-        icon: <AccountTreeIcon />,
-        component: <CatalogView token={token} />,
-    },
+    // {
+    //     title: 'Каталог товаров ТЗ',
+    //     to: '/catalog-view',
+    //     worked: 'Описан в "Обновление UI сайта runtec-shop.ru"',
+    //     icon: <AccountTreeIcon />,
+    //     component: <CatalogView token={token} />,
+    // },
     {
         title: 'Точки выдачи товаров',
         to: '/points',
@@ -141,5 +143,11 @@ export const routers = (token) => ([
         to: '/ResearchWantedGoods',
         icon: <InventoryIcon />,
         component: <ResearchWantedGoods token={token} />,
+    },
+    {
+        title: 'Товары',
+        to: '/goods-check-data',
+        component: <GoodsCheckData token={token} />,
+        icon: <AirlineSeatReclineExtraIcon />,
     },
 ]);

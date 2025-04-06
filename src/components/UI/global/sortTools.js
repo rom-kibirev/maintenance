@@ -305,7 +305,7 @@ export function sortProductsByBrand(products, type) {
     });
 
     // Переопределяем значение SORT для всех товаров
-    let sortValue = 600;
+    let sortValue = 100;
     sortedProducts.forEach((product) => {
         product.SORT = sortValue;
         sortValue += 10;

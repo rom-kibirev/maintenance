@@ -1,0 +1,51 @@
+@startuml
+
+' Компоненты
+[Отладка системы] as DebugSystem
+
+' Объединенные задачи
+package "Управление данными"  {
+  [Управление категориями] as CategoryManagement
+  [Управление товарами] as ProductManagement
+}
+
+package "Просмотр данных" {
+  [Просмотр пользователей] as ViewUsers
+  [Просмотр заказов] as ViewOrders
+  [Просмотр точек] as ViewPoints
+}
+
+[Получение данных] as DataRetrieval
+[Отправка данных] as DataSending
+[Анализ данных] as DataAnalysis
+
+[Сервер] as Server
+[Хранилище] as Storage
+[Кэш данных] as DataCache
+
+' Связи
+DebugSystem --> DataRetrieval
+
+DataRetrieval --> CategoryManagement
+DataRetrieval --> ProductManagement
+DataRetrieval --> ViewUsers
+DataRetrieval --> ViewOrders
+DataRetrieval --> ViewPoints
+
+CategoryManagement --> DataSending
+CategoryManagement *-- DataAnalysis
+ProductManagement --> DataSending
+ProductManagement *-- DataAnalysis
+
+DataRetrieval --> DataCache
+DataAnalysis --> DataCache
+DataSending --> DataCache
+
+DataCache --> Server
+DataCache --> Storage
+Server --> DataCache
+Storage --> DataCache
+
+DataAnalysis --> Storage : Обновление данных
+
+@enduml

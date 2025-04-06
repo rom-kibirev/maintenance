@@ -1,0 +1,103 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing true
+skinparam defaultTextAlignment center
+
+' === Главный домен ===
+package "Система управления (Core)" {
+    [Авторизация и маршрутизация] as AuthRouting
+    [Управление состоянием приложения] as AppState
+    [Координация подсистем] as Orchestrator
+}
+
+' === Управление данными ===
+package "Домен управления данными" {
+    package "Категории (Каталоги)" {
+        [Работа с категориями\n(/categories-tools)] as CategoriesTools
+        [Экспорт категорий в Excel] as ExcelExportCat
+    }
+
+    package "Товары" {
+        [Работа с товарами\n(/goods-tools)] as GoodsTools
+        [Анализ товаров\n(/goods-analysis)] as GoodsAnalyse
+        [Дубли товаров в 1С\n(/goods-1c-duplicates)] as Duplicates
+    }
+}
+
+' === Просмотр данных ===
+package "Домен просмотра данных" {
+    package "Пользователи" {
+        [Пользователи\n(/orders)] as UsersView
+        [Просмотр всех заказов\n(/orders-all)] as OrdersView
+    }
+    package "Точки" {
+        [Точки выдачи товаров\n(/points)] as PointsView
+    }
+}
+
+' === Аналитика ===
+package "Домен анализа данных" {
+    [Анализ категорий\n(/category-analysis)] as CompareCats
+    [Анализ товаров\n(/goods-analysis)] as AnalyseGoods
+    [Дубли товаров в 1С\n(/goods-1c-duplicates)] as Dupes
+    [Отключенные товары\n(/disabled-goods)] as DisabledAnalyzer
+}
+
+' === Сервисы и API ===
+package "Домен сервисов данных" {
+    package "API (requests/)" {
+        [api_v2.js] as APIv2
+        [api_v1.js\n(устаревший)] as APIv1
+        [local_php.js] as LocalPHP
+        [py.js\n(Python-интеграции)] as PyIntegration
+    }
+
+    package "Сервисы данных" {
+        [Получение данных из 1С] as DataFrom1C
+        [Обновление данных] as DataUpdater
+        [Восстановление поиска] as RestoreSearch
+        [Кэш данных] as CacheService
+    }
+}
+
+' === Связи и потоки ===
+Orchestrator --> CategoriesTools
+Orchestrator --> GoodsTools
+Orchestrator --> UsersView
+Orchestrator --> PointsView
+
+CategoriesTools --> APIv2
+GoodsTools --> APIv2
+UsersView --> APIv2
+PointsView --> APIv2
+
+DataFrom1C --> CategoriesTools
+DataFrom1C --> GoodsTools
+DataFrom1C --> CompareCats
+DataFrom1C --> AnalyseGoods
+DataFrom1C --> RestoreSearch
+
+GoodsAnalyse --> CacheService
+CompareCats --> CacheService
+Dupes --> CacheService
+
+APIv2 --> CacheService
+CacheService --> DataUpdater
+DataUpdater --> DataFrom1C
+DataFrom1C --> CacheService
+
+ExcelExportCat --> CategoriesTools
+
+DisabledGoods --> GoodsTools
+DisabledAnalyzer --> GoodsAnalyse
+
+UsersView --> APIv2
+OrdersView --> APIv2
+
+CacheService --> [Сервер]
+CacheService --> [Хранилище]
+[Сервер] --> CacheService
+[Хранилище] --> CacheService
+
+@enduml

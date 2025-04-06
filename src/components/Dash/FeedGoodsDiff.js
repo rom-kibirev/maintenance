@@ -124,13 +124,15 @@ export default function FeedGoodsDiff ({ token }) {
                                 patchCategoryImage={patchCategoryImage}
                             /> :
                             (filteredGoodsBySite?.length > 0 && goodsByFeed?.length > 0) &&
-                            <ProductsList
-                                goods={filteredGoodsBySite}
-                                feed={goodsByFeed}
-                                isTollsStat
-                                viewmode
-                                outsSetIsFeed
-                            />
+                            <Box sx={{width: '70vw'}}>
+                                <ProductsList
+                                    goods={filteredGoodsBySite}
+                                    feed={goodsByFeed}
+                                    isTollsStat
+                                    viewmode
+                                    outsSetIsFeed
+                                />
+                            </Box>
                         }
                     </Box>
                 </Box>

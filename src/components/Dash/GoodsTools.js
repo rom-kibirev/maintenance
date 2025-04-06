@@ -26,9 +26,9 @@ export default function GoodsTools({token}) {
     const [feed, setFeed] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
     const [selectedCategory, setSelectedCategory] = useLocalStorage('category', null);
-    const [isFeed, setIsFeed] = useLocalStorage("isFeed",false);
-    const [isSorted, setIsSorted] = useLocalStorage("isSorted",false);
-    const [currentMethod, setCurrentMethod] = useLocalStorage('method_goods', null);
+    const [isFeed, setIsFeed] = useLocalStorage("isFeed",true);
+    const [isSorted, setIsSorted] = useLocalStorage("isSorted",true);
+    const [currentMethod, setCurrentMethod] = useLocalStorage('method_goods', 0);
     const [isEdit, setIsEdit] = useState(null);
     const [filteredGoods, setFilteredGoods] = useState(null);
     const [brands, setBrands] = useState(null);
@@ -43,7 +43,7 @@ export default function GoodsTools({token}) {
     // const [goodsQuantity, setGoodsQuantity] = useState(null);
     const [isLoadingPrices, setIsLoadingPrices] = useState(false);
     const [isLoadingQuantity, setIsLoadingQuantity] = useState(false);
-    const [loadPricesAndQuantity, setLoadPricesAndQuantity] = useLocalStorage("loadPricesAndQuantity", true);
+    const [loadPricesAndQuantity, setLoadPricesAndQuantity] = useLocalStorage("loadPricesAndQuantity", false);
 
     // Основной эффект для загрузки всех данных
     useEffect(() => {
@@ -63,11 +63,11 @@ export default function GoodsTools({token}) {
                 if (!isMounted) return;
 
                 const { categories, goods, feed } = goodsData;
-                
+
                 if (goods?.length && feed?.length) {
                     // Фильтруем товары без категории
                     const validGoods = goods.filter(good => good.CATEGORY_ID && good.CATEGORY_ID !== 0);
-                    
+
                     // Добавляем информацию о категории
                     const goodsWithCategory = validGoods.map(good => {
                         const CATEGORY = categories?.find(category => category.ID === good.CATEGORY_ID);
@@ -95,7 +95,7 @@ export default function GoodsTools({token}) {
                                 const updatedGoods = goodsWithCategory.map(good => {
                                     const priceData = pricesMap.get(good.ID);
                                     const quantityData = quantityMap.get(good.ID);
-                                    
+
                                     return {
                                         ...good,
                                         PRICE: priceData?.PRICE || 0,
@@ -168,8 +168,8 @@ export default function GoodsTools({token}) {
         const filterGoods = () => {
             if (!selectedCategory) return goods;
 
-            const categoriesId = currentMethod === 1 
-                ? [selectedCategory] 
+            const categoriesId = currentMethod === 1
+                ? [selectedCategory]
                 : [selectedCategory, ...getCategoryDescendants(selectedCategory, categories)];
 
             return goods.filter(good => categoriesId?.includes(good.CATEGORY_ID));
@@ -323,10 +323,10 @@ export default function GoodsTools({token}) {
 
     const handleSearch = () => {
         if (!searchQuery.trim()) return;
-        
+
         // Проверяем, является ли поисковый запрос числом (для ID)
         const isNumeric = /^\d+$/.test(searchQuery);
-        
+
         const found = goods?.filter(good => {
             // Точный поиск по ID
             if (isNumeric && good.ID.toString() === searchQuery) {
@@ -365,7 +365,6 @@ export default function GoodsTools({token}) {
         setShowSearchResults(false);
     };
 
-
     return (
         <Page
             label="Управление товарами"
@@ -382,28 +381,28 @@ export default function GoodsTools({token}) {
                 )}
                 {!!answer && (<Alert severity={answer?.severity || "info"}>{answer?.message || ""}</Alert>)}
                 {methods?.map(m => (<IconButton key={m.id} color={currentMethod === m.id ? "primory" : m.color} onClick={() => setCurrentMethod(m.id)} title={m.title}>{m.icon}</IconButton>))}
-                <TextField 
-                    label='Поиск товара (ID/NAME/XML_ID)' 
+                <TextField
+                    label='Поиск товара (ID/NAME/XML_ID)'
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                     size="small"
                     sx={{width: 300}}
                 />
-                <Button 
-                    variant="contained" 
-                    color="primary" 
+                <Button
+                    variant="contained"
+                    color="primary"
                     onClick={handleSearch}
                     size="small"
                 >
                     Найти
                 </Button>
-                <TextField 
-                    label='Количество товаров' 
-                    disabled 
+                <TextField
+                    label='Количество товаров'
+                    disabled
                     value={currentGoods?.length || 0}
-                    size="small" 
-                    sx={{width: 120}} 
+                    size="small"
+                    sx={{width: 120}}
                 />
                 {!!selectedCategory && <TextField label='Выбранная категория' disabled value={currentCategory?.NAME || ""} size="small" />}
                 {current?.id === 0 && <>
@@ -458,14 +457,14 @@ export default function GoodsTools({token}) {
                 </>}
                 {(current?.id === 1 && selectedCategory) && <Button color="warning" variant="contained" onClick={() => transferGoodsHandler()} >Перенести товары в категорию</Button>}
             </Box>
-            {(currentMethod === 0 || currentMethod === 1) && 
-                <GoodToolsPrintCatalog 
-                    categories={categories} 
-                    goods={filteredCategoryGoods} 
-                    currentMethod={currentMethod} 
-                    selectedCategory={selectedCategory} 
-                    setSelectedCategory={setSelectedCategory} 
-                    feed={feed} 
+            {(currentMethod === 0 || currentMethod === 1) &&
+                <GoodToolsPrintCatalog
+                    categories={categories}
+                    goods={filteredCategoryGoods}
+                    currentMethod={currentMethod}
+                    selectedCategory={selectedCategory}
+                    setSelectedCategory={setSelectedCategory}
+                    feed={feed}
                 />
             }
             {(filteredGoods?.length && currentMethod === 2) && <Box className="flex flex-col gap-2 pt-3">
@@ -513,15 +512,15 @@ export default function GoodsTools({token}) {
                 </Box>
             </Box>}
 
-            <Dialog 
-                open={showSearchResults} 
+            <Dialog
+                open={showSearchResults}
                 onClose={() => setShowSearchResults(false)}
                 maxWidth="md"
                 fullWidth
             >
                 <DialogTitle>
                     Результаты поиска
-                    <Button 
+                    <Button
                         onClick={() => setShowSearchResults(false)}
                         sx={{ position: 'absolute', right: 8, top: 8 }}
                     >
@@ -531,12 +530,12 @@ export default function GoodsTools({token}) {
                 <DialogContent>
                     <List>
                         {searchResults.map((good, index) => (
-                            <ListItem 
+                            <ListItem
                                 key={index}
                                 button
                                 onClick={() => handleSelectGood(good)}
                             >
-                                <ListItemText 
+                                <ListItemText
                                     primary={good.NAME}
                                     secondary={`ID: ${good.ID} | Артикул: ${good.VENDOR} | Бренд: ${good.BRAND}`}
                                 />
@@ -546,15 +545,15 @@ export default function GoodsTools({token}) {
                 </DialogContent>
             </Dialog>
 
-            <Dialog 
-                open={searchDialogOpen} 
+            <Dialog
+                open={searchDialogOpen}
                 onClose={handleCloseSearchDialog}
                 maxWidth="md"
                 fullWidth
             >
                 <DialogTitle>
                     Информация о товаре
-                    <Button 
+                    <Button
                         onClick={handleCloseSearchDialog}
                         sx={{ position: 'absolute', right: 8, top: 8 }}
                     >
@@ -565,56 +564,56 @@ export default function GoodsTools({token}) {
                     {foundGood && (
                         <List>
                             <ListItem>
-                                <ListItemText 
-                                    primary="ID" 
+                                <ListItemText
+                                    primary="ID"
                                     secondary={foundGood.ID}
                                 />
                             </ListItem>
                             <ListItem>
-                                <ListItemText 
-                                    primary="Название" 
+                                <ListItemText
+                                    primary="Название"
                                     secondary={foundGood.NAME}
                                 />
                             </ListItem>
                             <ListItem>
-                                <ListItemText 
-                                    primary="XML_ID" 
+                                <ListItemText
+                                    primary="XML_ID"
                                     secondary={foundGood.XML_ID}
                                 />
                             </ListItem>
                             <ListItem>
-                                <ListItemText 
-                                    primary="Артикул" 
+                                <ListItemText
+                                    primary="Артикул"
                                     secondary={foundGood.VENDOR}
                                 />
                             </ListItem>
                             <ListItem>
-                                <ListItemText 
-                                    primary="Бренд" 
+                                <ListItemText
+                                    primary="Бренд"
                                     secondary={foundGood.BRAND}
                                 />
                             </ListItem>
                             <ListItem>
-                                <ListItemText 
-                                    primary="Категория" 
+                                <ListItemText
+                                    primary="Категория"
                                     secondary={foundGood.CATEGORY?.NAME}
                                 />
                             </ListItem>
                             <ListItem>
-                                <ListItemText 
-                                    primary="Цена" 
+                                <ListItemText
+                                    primary="Цена"
                                     secondary={foundGood.PRICE}
                                 />
                             </ListItem>
                             <ListItem>
-                                <ListItemText 
-                                    primary="Количество" 
+                                <ListItemText
+                                    primary="Количество"
                                     secondary={foundGood.COUNT}
                                 />
                             </ListItem>
                             <ListItem>
-                                <ListItemText 
-                                    primary="Активность" 
+                                <ListItemText
+                                    primary="Активность"
                                     secondary={foundGood.ACTIVE ? "Да" : "Нет"}
                                 />
                             </ListItem>
